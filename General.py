@@ -1,3 +1,3 @@
 objects = {
-    "synapses" = []
+    "synapses": []
 }
