@@ -3,7 +3,7 @@ from General import objects
 class Synapse(object):
 
     """
-        TO-BE-WRITTEN DOCUMENT :))))
+        TODO: Documentation
     """
 
     def __init__(self, parameters='', equations='', functions=None, pre=None, post=None, psp=None, name=None):

@@ -1,4 +1,5 @@
 objects = {
     "synapses": [],
-    "neurons": []
+    "neurons": [],
+    "populations": []
 }
