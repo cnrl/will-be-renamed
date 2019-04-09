@@ -1,5 +1,1 @@
-objects = {
-    "synapses": [],
-    "neurons": [],
-    "populations": []
-}
+networks = []

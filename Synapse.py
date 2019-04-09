@@ -1,10 +1,10 @@
-from General import objects
 
 class Synapse(object):
 
     """
         TODO: Documentation
     """
+    _instance_count = 0
 
     def __init__(self, parameters='', equations='', functions=None, pre=None, post=None, psp=None, name=None):
         self.parameters = parameters
@@ -13,9 +13,9 @@ class Synapse(object):
         self.post = post
         self.functions = functions
         self.psp = psp
-        self.name = name or "My Synapse_{}".format(len(objects['synapses']))
+        self.name = name or "My Synapse_{}".format(self._instance_count)
 
-        objects["synapses"].append(self)
+        self._instance_count += 1
 
     def __repr__(self):
         text = self.name + """
