@@ -1,21 +1,22 @@
 from General import objects
 
-class Synapse(object):
 
+class Neuron(object):
     """
         TO-BE-WRITTEN DOCUMENT :))))
     """
 
-    def __init__(self, parameters='', equations='', functions=None, pre=None, post=None, psp=None, name=None):
+    def __init__(self, parameters='', equations='', functions=None, spike=None, refractory=None, reset=None, name=None):
         self.parameters = parameters
         self.equations = equations
-        self.pre = pre
-        self.post = post
         self.functions = functions
-        self.psp = psp
-        self.name = name or "My Synapse_{}".format(len(objects['synapses']))
+        self.spike = spike
+        self.reset = reset
+        self.refractory = refractory
+        self.name = name or "My Neuron_{}".format(len(objects['neurons']))
 
-        objects["synapses"].append(self)
+        objects["neurons"].append(self)
+
 
     def __repr__(self):
         text = self.name + """
@@ -25,8 +26,8 @@ class Synapse(object):
         Equations of the variables:
         """ + str(self.equations) + """
         Spiking condition:
-        """ + str(self.pre) + """
+        """ + str(self.spike) + """
         Reset after a spike:
-        """ + str(self.post)
+        """ + str(self.reset)
 
         return text
