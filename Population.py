@@ -1,3 +1,6 @@
+import inspect
+from copy import deepcopy
+
 
 class Population(object):
     """
@@ -7,7 +10,7 @@ class Population(object):
     def __init__(self, shape, neuron, name=None):
         self.shape = shape if isinstance(shape, tuple) else (shape, )
         self.dimension = len(shape)
-        self.neuron = neuron
+        self.neuron = neuron() if inspect.isclass(neuron) else deepcopy(neuron)
         self.name = name or "population_{}".format(self._instance_count)
 
         self.size = 1
