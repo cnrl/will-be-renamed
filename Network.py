@@ -2,8 +2,22 @@ from General import networks
 from Population import Population
 
 class Network(object):
+    """
+        Class to build a network.
+
+        Methods:
+        > add(obj): Adds an object to the network
+        > compile(): Every defined network needs to be compiled before simulation using the compile method.
+    """
     _instance_count = 0
+
     def __init__(self, objects=None, name=None):
+        """
+            Parameters:
+
+            > objects: A list of objects to be added to the network. Each object is either a population or a connections.
+            > name: Name of the network.
+        """
         self.populations = []
         self.connections = []
         if objects is not None:
