@@ -1,11 +1,23 @@
 
 class Neuron(object):
     """
-        TO-BE-WRITTEN DOCUMENT :))))
+        Class to define a neuron.
     """
 
     _instance_count = 0
+
     def __init__(self, parameters='', equations='', functions=None, spike=None, refractory=None, reset=None, name=None):
+        """
+            Parameters:
+
+            > parameters: Parameters of the neuron and their initial values.
+            > equations: Equations of the neuron, defining the temporal evolution of variables.
+            > functions: Definition of additional functions used in `equations`.
+            > spike: Spike emmision condition.
+            > refractory: Refractory period of the neuron after a spike.
+            > reset: Changes to the variables after a spike.
+            > name: Name of the neuron.
+        """
         self.parameters = parameters
         self.equations = equations
         self.functions = functions
