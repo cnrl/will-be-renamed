@@ -3,11 +3,20 @@ from copy import deepcopy
 
 class Connection:
     """
-        TODO: Documentation
+        Class to define a connection(gathering all synapses of the same type) between two populations.
     """
     _instance_count = 0
 
     def __init__(self, pre, post, connection_type, synapse=None, name=None):
+        """
+            Parameters:
+
+            > pre: Pre-synaptic population.
+            > post: Post-synaptic population.
+            > connection_type: Type of the connection.
+            > synapse: A synapse instance the connection is made of.
+            > name: Name of the connection.
+        """
         self.pre = pre
         self.post = post
         self.connection_type = connection_type
