@@ -16,7 +16,7 @@ class Synapse(object):
             > pre: Variable updates when a pre-synaptic spike is received.
             > post: Variable updates when a post-synaptic spike is emitted.
             > psp: Influence of a synapse on post-synaptic neuron.
-            > name: Name of the neuron.
+            > name: Name of the syanpse.
         """
         self.parameters = parameters
         self.equations = equations
