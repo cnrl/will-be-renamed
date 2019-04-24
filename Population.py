@@ -4,10 +4,18 @@ from copy import deepcopy
 
 class Population(object):
     """
-        TODO: Documentation
+        Class to define a population of neurons.
     """
     _instance_count = 0
+
     def __init__(self, shape, neuron, name=None):
+        """
+            Parameters:
+
+            > shape: The shape in which the neurons are placed as tuple. If an integer is given, it denotes the size of population.
+            > neuron: A neuron instance the population is made of.
+            > name: Name of the population.
+        """
         self.shape = shape if isinstance(shape, tuple) else (shape, )
         self.dimension = len(shape)
         self.neuron = neuron() if inspect.isclass(neuron) else deepcopy(neuron)
