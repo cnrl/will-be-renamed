@@ -1,5 +1,5 @@
 import pyparsing as pp
-from General import named_constants
+from cnrl.General import named_constants
 
 
 # parameter grammar

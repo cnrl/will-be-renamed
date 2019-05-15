@@ -1,4 +1,4 @@
-from GrammarDefaults import parameters_syntax
+from cnrl.GrammarDefaults import parameters_syntax
 
 
 def parse_parameters(parameters):

@@ -1,5 +1,5 @@
-from General import networks
-from Population import Population
+from cnrl.General import networks
+from cnrl.Population import Population
 
 class Network(object):
     """
