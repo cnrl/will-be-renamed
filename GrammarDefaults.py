@@ -25,4 +25,8 @@ parameters_syntax = pp.OneOrMore(param_syntax + ";")
 
 
 # equation grammar
-
+_mid_symbols = (lambda x: [pp.Literal(i) for i in x])(["=", "+=", "-=", "*=", "/=", "%="])
+_symbols = (lambda x: [pp.Literal(i) for i in x])(["-", "+", "/", "*", "**", "%"])
+_d = pp.Literal("d")
+_ode_left = pp.Combine(_d + param_name + pp.Literal("/") + _d + pp.Literal("t")).setResultsName("ode left side")
+_operand = pp.Or([param_name, param_value])
