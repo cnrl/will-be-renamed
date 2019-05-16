@@ -2,6 +2,7 @@ from cnrl.code_generators.models import Population, Projection
 from cnrl.exceptions import IllegalArgument
 
 
+# generates cpp code, compiles it and returns dynamically loaded module
 def generate(pops, projs):
     _check_args(pops, projs)
 

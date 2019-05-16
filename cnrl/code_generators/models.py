@@ -1,4 +1,5 @@
 from cnrl.exceptions import IllegalArgument
+from cnrl.globals import forbidden_pop_var_names, forbidden_proj_var_names
 
 
 class PopulationVar(object):
@@ -11,6 +12,8 @@ class PopulationVar(object):
     def _check_args(self):
         if type(self.name) != str:
             raise IllegalArgument("PopulationVar.name must be a string")
+        if self.name.lower() in forbidden_pop_var_names:
+            raise IllegalArgument("{} is not a valid name for PopulationVar.name".format(self.name))
 
         if type(self.local) != bool:
             raise IllegalArgument("PopulationVar.local must be a boolean")
@@ -43,6 +46,8 @@ class ProjectionVar(object):
     def _check_args(self):
         if type(self.name) != str:
             raise IllegalArgument("ProjectionVar.name must be a string")
+        if self.name.lower() in forbidden_proj_var_names:
+            raise IllegalArgument("{} is not a valid name for ProjectionVar.name".format(self.name))
 
 
 class Projection(object):
