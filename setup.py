@@ -12,5 +12,5 @@ setup(
     author='CNRL Team',
     packages=['cnrl'],
     license='MIT',
-    install_requires=['numpy', 'scikit-image', 'opencv-python', 'pyparsing']
+    install_requires=['numpy', 'scikit-image', 'opencv-python', 'pyparsing', 'Jinja2']
 )
