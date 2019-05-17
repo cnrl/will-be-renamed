@@ -1,13 +1,16 @@
 import os
+from jinja2 import FileSystemLoader, Environment
 from cnrl.code_generators.models import Population, Projection
 from cnrl.exceptions import IllegalArgument, IllegalState
 
 
 # generates cpp code, compiles it and returns dynamically loaded module
 def generate(name, pops, projs):
-    _check_args(pops, projs)
+    _check_args(name, pops, projs)
 
     base_path = _create_dirs(name)
+
+    _generate_files(base_path, pops, projs)
 
 
 def _check_args(name, pops, projs):
@@ -41,3 +44,29 @@ def _create_dirs(name):
     os.mkdir(base_path)
 
     return base_path
+
+
+def _generate_files(base_path, pops, projs):
+    current__dir_path = os.path.dirname(os.path.abspath(__file__))
+
+    file_loader = FileSystemLoader(os.path.join(current__dir_path, 'templates'))
+    template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
+
+    _generate_cpp_codes(base_path, template_env, pops, projs)
+
+
+def _generate_cpp_codes(base_path, template_env, pops, projs):
+    _generate_core(base_path, template_env, pops, projs)
+
+
+def _generate_core(base_path, template_env, pops, projs):
+    for template_name in ['core.h', 'core.cpp']:
+        template = template_env.get_template(template_name)
+        rendered = template.render(pops=pops, projs=projs)
+
+        full_path = os.path.join(base_path, template_name)
+        file = open(full_path, "w+")
+
+        file.write(rendered)
+
+        file.close()

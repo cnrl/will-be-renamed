@@ -26,6 +26,8 @@ class Population(object):
 
         self._check_args()
 
+        self._class_name = self.name.title()
+
     def _check_args(self):
         if type(self.name) != str:
             raise IllegalArgument("Population.name must be a string")
@@ -53,11 +55,13 @@ class ProjectionVar(object):
 class Projection(object):
     def __init__(self, name, variables, source, dest):
         self.name = name
-        self.source = source
         self.variables = variables
+        self.source = source
         self.dest = dest
 
         self._check_types()
+
+        self._class_name = self.name.title()
 
     def _check_types(self):
         if type(self.name) != str:
@@ -69,8 +73,8 @@ class Projection(object):
             if not isinstance(var, ProjectionVar):
                 raise IllegalArgument("Projection.variables must be a list of ProjectionVars")
 
-        if type(self.source) != str:
-            raise IllegalArgument("Projection.source must be a string")
+        if not isinstance(self.source, Population):
+            raise IllegalArgument("Projection.source must be a Population")
 
-        if type(self.dest) != str:
-            raise IllegalArgument("Projection.dest must be a string")
+        if not isinstance(self.dest, Population):
+            raise IllegalArgument("Projection.dest must be a Population")
