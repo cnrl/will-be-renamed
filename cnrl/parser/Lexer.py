@@ -56,3 +56,33 @@ def parameters_lexer(parameters):
                        "eq": eq})
 
     return params
+
+
+def equations_lexer(equations):
+    eqs = []
+    lines = split("[\n;]", equations)
+    lines = (lambda x: [i.strip() for i in x])(lines)
+    for line in lines:
+        try:
+            eq, flag = split("[:]", line, maxsplit=1)
+        except ValueError:
+            eq = line
+            flag = ""
+
+        try:
+            lhs, rhs = (lambda x: [i.strip() for i in x])(split("[+-/*%]?=", eq))
+            if rhs is "":
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+            op = split("=", eq)[0][-1]
+            if op in ["+", "-", "*", "/", "%"]:
+                rhs = lhs + op + rhs
+        except ValueError:
+            # TODO generate custom exception
+            raise Exception("Invalid syntax for an equation")
+
+        # TODO check flag validity
+        eqs.append({"lhs": lhs,
+                    "rhs": rhs,
+                    "constraint": flag})
+    return eqs
