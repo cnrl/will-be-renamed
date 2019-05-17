@@ -1,12 +1,5 @@
-from cnrl.parser.GrammarDefaults import parameters_syntax, equations_syntax
-
-
-def parse_parameters(parameters):
-    return parameters_syntax.parseString(parameters)
-
-
 def parse_equations(equations):
-    return equations_syntax.parseString(equations)
+    pass
 
 
 # string = """salam = 5:self; khubi=6:self;
