@@ -1,4 +1,5 @@
 from re import split, compile
+
 from cnrl.api.models.General import named_constants, keywords
 
 
@@ -10,7 +11,7 @@ def is_name_valid(name):
 
 
 def is_value_valid(value):
-    numerical_pattern = compile("[-+]?[0-9]+[.][0-9]*")
+    numerical_pattern = compile("[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?")
     if not numerical_pattern.match(value) and value not in named_constants:
         return False
     return True
@@ -76,7 +77,7 @@ def equations_lexer(equations):
                 raise Exception("Invalid syntax for an equation")
             op = split("=", eq)[0][-1]
             if op in ["+", "-", "*", "/", "%"]:
-                rhs = lhs + op + rhs
+                rhs = lhs + op + "(" + rhs + ")"
         except ValueError:
             # TODO generate custom exception
             raise Exception("Invalid syntax for an equation")
