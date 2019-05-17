@@ -57,6 +57,7 @@ def _generate_files(base_path, pops, projs):
 
 def _generate_cpp_codes(base_path, template_env, pops, projs):
     _generate_core(base_path, template_env, pops, projs)
+    _generate_populations(base_path, template_env, pops)
 
 
 def _generate_core(base_path, template_env, pops, projs):
@@ -65,6 +66,20 @@ def _generate_core(base_path, template_env, pops, projs):
         rendered = template.render(pops=pops, projs=projs)
 
         full_path = os.path.join(base_path, template_name)
+        file = open(full_path, "w+")
+
+        file.write(rendered)
+
+        file.close()
+
+
+def _generate_populations(base_path, template_env, pops):
+    template = template_env.get_template('pop.hpp')
+
+    for pop in pops:
+        rendered = template.render(pop=pop)
+
+        full_path = os.path.join(base_path, '{}.hpp'.format(pop.name))
         file = open(full_path, "w+")
 
         file.write(rendered)

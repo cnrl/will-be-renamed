@@ -1,3 +1,6 @@
+#include <vector>
+#include <queue>
+
 {% for pop in pops %}
 #include "{{ pop.name }}.hpp"
 {% endfor %}
