@@ -31,6 +31,8 @@ class Population(object):
     def _check_args(self):
         if type(self.name) != str:
             raise IllegalArgument("Population.name must be a string")
+        if not self.name.islower():
+            raise IllegalArgument("Population.name must be lowercase")
 
         if type(self.variables) != list:
             raise IllegalArgument("Population.variables must be a list")
@@ -59,13 +61,15 @@ class Projection(object):
         self.source = source
         self.dest = dest
 
-        self._check_types()
+        self._check_args()
 
         self._class_name = self.name.title()
 
-    def _check_types(self):
+    def _check_args(self):
         if type(self.name) != str:
             raise IllegalArgument("Projection.name must be a string")
+        if not self.name.islower():
+            raise IllegalArgument("Population.name must be lowercase")
 
         if type(self.variables) != list:
             raise IllegalArgument("Projection.variables must be a list")
