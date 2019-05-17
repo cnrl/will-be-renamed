@@ -1,4 +1,4 @@
-from re import split, compile
+from re import split, compile, findall
 
 from cnrl.api.models.General import named_constants, keywords
 
@@ -51,9 +51,11 @@ def parameters_lexer(parameters):
             else:
                 scope = "self"
 
+        value = float(value)
         params.append({"name": name,
                        "init": value,
                        "scope": scope,
+                       "ctype": "double",
                        "eq": eq})
 
     return params
@@ -82,8 +84,47 @@ def equations_lexer(equations):
             # TODO generate custom exception
             raise Exception("Invalid syntax for an equation")
 
-        # TODO check flag validity
         eqs.append({"lhs": lhs,
                     "rhs": rhs,
                     "constraint": flag})
     return eqs
+
+
+def variable_lexer(equations):
+    variables = []
+    for eq in equations:
+        lhs = eq["lhs"]
+        if is_name_valid(lhs):
+            name = lhs
+        else:
+            name = findall("d([\w]+)/dt", lhs)
+            if len(name) == 1:
+                name = name[0].strip()
+            else:
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+        constraint = eq["constraint"]
+        if constraint is not "":
+            flag = (lambda x: [i.strip() for i in x])(split("=", constraint, maxsplit=1))
+            if flag[0] != "init":
+                # TODO generate custom exception
+                raise Exception("Invalid constraint for an equation")
+            try:
+                val = flag[1]
+                if not is_value_valid(val):
+                    # TODO generate custom exception
+                    raise Exception("Invalid constraint for an equation")
+            except IndexError:
+                # TODO generate custom exception
+                raise Exception("Invalid constraint for an equation")
+        else:
+            val = "0.0"
+
+        equation = lhs + "=" + eq["rhs"]
+        val = float(val)
+        variables.append({"name": name,
+                          "init": val,
+                          "scope": "self",
+                          "ctype": "double",
+                          "eq": equation})
+    return variables
