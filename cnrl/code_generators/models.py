@@ -1,4 +1,4 @@
-from cnrl.exceptions import IllegalArgument
+from cnrl.exceptions import IllegalArgumentException
 from cnrl.globals import FORBIDDEN_POP_VAR_NAMES, FORBIDDEN_PROJ_VAR_NAMES
 
 
@@ -11,12 +11,12 @@ class PopulationVar(object):
 
     def _check_args(self):
         if type(self.name) != str:
-            raise IllegalArgument("PopulationVar.name must be a string")
+            raise IllegalArgumentException("PopulationVar.name must be a string")
         if self.name.lower() in FORBIDDEN_POP_VAR_NAMES:
-            raise IllegalArgument("{} is not a valid name for PopulationVar.name".format(self.name))
+            raise IllegalArgumentException("{} is not a valid name for PopulationVar.name".format(self.name))
 
         if type(self.local) != bool:
-            raise IllegalArgument("PopulationVar.local must be a boolean")
+            raise IllegalArgumentException("PopulationVar.local must be a boolean")
 
 
 class Population(object):
@@ -30,15 +30,15 @@ class Population(object):
 
     def _check_args(self):
         if type(self.name) != str:
-            raise IllegalArgument("Population.name must be a string")
+            raise IllegalArgumentException("Population.name must be a string")
         if not self.name.islower():
-            raise IllegalArgument("Population.name must be lowercase")
+            raise IllegalArgumentException("Population.name must be lowercase")
 
         if type(self.variables) != list:
-            raise IllegalArgument("Population.variables must be a list")
+            raise IllegalArgumentException("Population.variables must be a list")
         for var in self.variables:
             if not isinstance(var, PopulationVar):
-                raise IllegalArgument("Population.variables must be a list of PopulationVars")
+                raise IllegalArgumentException("Population.variables must be a list of PopulationVars")
 
 
 class ProjectionVar(object):
@@ -49,9 +49,9 @@ class ProjectionVar(object):
 
     def _check_args(self):
         if type(self.name) != str:
-            raise IllegalArgument("ProjectionVar.name must be a string")
+            raise IllegalArgumentException("ProjectionVar.name must be a string")
         if self.name.lower() in FORBIDDEN_PROJ_VAR_NAMES:
-            raise IllegalArgument("{} is not a valid name for ProjectionVar.name".format(self.name))
+            raise IllegalArgumentException("{} is not a valid name for ProjectionVar.name".format(self.name))
 
 
 class Projection(object):
@@ -67,18 +67,18 @@ class Projection(object):
 
     def _check_args(self):
         if type(self.name) != str:
-            raise IllegalArgument("Projection.name must be a string")
+            raise IllegalArgumentException("Projection.name must be a string")
         if not self.name.islower():
-            raise IllegalArgument("Population.name must be lowercase")
+            raise IllegalArgumentException("Population.name must be lowercase")
 
         if type(self.variables) != list:
-            raise IllegalArgument("Projection.variables must be a list")
+            raise IllegalArgumentException("Projection.variables must be a list")
         for var in self.variables:
             if not isinstance(var, ProjectionVar):
-                raise IllegalArgument("Projection.variables must be a list of ProjectionVars")
+                raise IllegalArgumentException("Projection.variables must be a list of ProjectionVars")
 
         if not isinstance(self.source, Population):
-            raise IllegalArgument("Projection.source must be a Population")
+            raise IllegalArgumentException("Projection.source must be a Population")
 
         if not isinstance(self.dest, Population):
-            raise IllegalArgument("Projection.dest must be a Population")
+            raise IllegalArgumentException("Projection.dest must be a Population")
