@@ -8,7 +8,7 @@ class Equations:
         self._check_args()
 
     def _check_args(self):
-        if isinstance(self.equations, str):
+        if not isinstance(self.equations, str):
             raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
 
     def __repr__(self):

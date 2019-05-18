@@ -3,12 +3,12 @@
 double dt;
 long int t;
 
-{% for pop in pops %}
-{{ pop._class_name }} {{ pop.name }};
+{% for population in populations %}
+Population{{ population._id }} population{{ population._id }};
 {% endfor %}
 
-{% for proj in projs %}
-{{ proj._class_name }} {{ proj.name }};
+{% for connection in connections %}
+Connection{{ connection._id }} connection{{ connection._id }};
 {% endfor %}
 
 void single_step();
@@ -23,27 +23,27 @@ void initialize(double _dt) {
     dt = _dt;
     t = (long int)(0);
 
-    {% for pop in pops %}
-    {{ pop.name }}.init_population();
+    {% for population in populations %}
+    population{{ population._id }}.init_population();
     {% endfor %}
 
-    {% for proj in projs %}
-    {{ proj.name }}.init_projection();
+    {% for connection in connections %}
+    connection{{ connection._id }}.init_connection();
     {% endfor %}
 }
 
 void single_step()
 {
-    {% for proj in projs %}
-    {{ proj.name }}.compute_psp();
+    {% for connection in connections %}
+    connection{{ connection._id }}.compute_psp();
     {% endfor %}
 
-    {% for pop in pops %}
-    {{ pop.name }}.update();
+    {% for population in populations %}
+    population{{ population._id }}.update();
     {% endfor %}
 
-    {% for proj in projs %}
-    {{ proj.name }}.update_synapse();
+    {% for connection in connections %}
+    connection{{ connection._id }}.update_synapse();
     {% endfor %}
 
     t++;

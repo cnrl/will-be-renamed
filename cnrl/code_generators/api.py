@@ -1,69 +1,50 @@
 import os
 from jinja2 import FileSystemLoader, Environment
-from cnrl.code_generators.models import Population, Projection
-from cnrl.exceptions import IllegalStateException, IllegalArgumentException
+
+from cnrl.exceptions import IllegalStateException
 
 
 # generates cpp code, compiles it and returns dynamically loaded module
-def generate(name, pops, projs):
-    _check_args(name, pops, projs)
+def generate(net_id, populations, connections):
+    base_path = _create_dirs(net_id)
 
-    base_path = _create_dirs(name)
-
-    _generate_files(base_path, pops, projs)
+    _generate_files(base_path, populations, connections)
 
 
-def _check_args(name, pops, projs):
-    if type(name) != str:
-        raise IllegalArgumentException("name must be a string")
-
-    if type(pops) != list:
-        raise IllegalArgumentException("pops must be a list")
-    for pop in pops:
-        if not isinstance(pop, Population):
-            raise IllegalArgumentException("pops must be a list of Populations")
-
-    if type(projs) != list:
-        raise IllegalArgumentException("projs must be a list")
-    for proj in projs:
-        if not isinstance(proj, Projection):
-            raise IllegalArgumentException("projs must be a list of Projections")
-
-
-def _create_dirs(name):
+def _create_dirs(net_id):
     cwd = os.getcwd()
 
     dir_path = os.path.join(cwd, 'build')
 
-    if os.path.exists(dir_path):
-        raise IllegalStateException('cannot create build folder, a file or directory with this name exists')
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
 
-    os.mkdir(dir_path)
-
-    base_path = os.path.join(dir_path, name)
+    base_path = os.path.join(dir_path, 'net' + str(net_id))
+    if os.path.exists(base_path):
+        raise IllegalStateException("directory {} already exists".format(base_path))
     os.mkdir(base_path)
 
     return base_path
 
 
-def _generate_files(base_path, pops, projs):
-    current__dir_path = os.path.dirname(os.path.abspath(__file__))
+def _generate_files(base_path, populations, connections):
+    current_dir_path = os.path.dirname(os.path.abspath(__file__))
 
-    file_loader = FileSystemLoader(os.path.join(current__dir_path, 'templates'))
+    file_loader = FileSystemLoader(os.path.join(current_dir_path, 'templates'))
     template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
 
-    _generate_cpp_codes(base_path, template_env, pops, projs)
+    _generate_cpp_codes(base_path, template_env, populations, connections)
 
 
-def _generate_cpp_codes(base_path, template_env, pops, projs):
-    _generate_core(base_path, template_env, pops, projs)
-    _generate_populations(base_path, template_env, pops)
+def _generate_cpp_codes(base_path, template_env, populations, connections):
+    _generate_core(base_path, template_env, populations, connections)
+    _generate_populations(base_path, template_env, populations)
 
 
-def _generate_core(base_path, template_env, pops, projs):
+def _generate_core(base_path, template_env, populations, connections):
     for template_name in ['core.h', 'core.cpp']:
         template = template_env.get_template(template_name)
-        rendered = template.render(pops=pops, projs=projs)
+        rendered = template.render(populations=populations, connections=connections)
 
         full_path = os.path.join(base_path, template_name)
         file = open(full_path, "w+")
@@ -73,13 +54,13 @@ def _generate_core(base_path, template_env, pops, projs):
         file.close()
 
 
-def _generate_populations(base_path, template_env, pops):
-    template = template_env.get_template('pop.hpp')
+def _generate_populations(base_path, template_env, populations):
+    template = template_env.get_template('population.hpp')
 
-    for pop in pops:
-        rendered = template.render(pop=pop)
+    for population in populations:
+        rendered = template.render(population=population)
 
-        full_path = os.path.join(base_path, '{}.hpp'.format(pop.name))
+        full_path = os.path.join(base_path, 'population{}.hpp'.format(population._id))
         file = open(full_path, "w+")
 
         file.write(rendered)

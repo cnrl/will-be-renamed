@@ -3,7 +3,7 @@
 extern double dt;
 extern long int t;
 
-struct {{ pop._class_name }} {
+struct Population{{ population._id }} {
 
     int size;
 
@@ -13,14 +13,10 @@ struct {{ pop._class_name }} {
     std::vector<long int> last_spike;
     std::vector<int> spiked;
 
-    {% for var in pop.variables %}
-    {% if not var.local %}
+    {% for var in population.neuron.parameters.vars %}
+    {% if var.scope == 'global'%}
     double {{ var.name }};
-    {% endif %}
-    {% endfor %}
-
-    {% for var in pop.variables %}
-    {% if var.local %}
+    {% elif var.scope == 'local'%}
     std::vector< double > {{ var.name }};
     {% endif %}
     {% endfor %}
@@ -39,16 +35,12 @@ struct {{ pop._class_name }} {
         }
     };
 
-    {% for var in pop.variables %}
-    {% if not var.local %}
+    {% for var in population.neuron.parameters.vars %}
+    {% if var.scope == 'global'%}
     double get_{{ var.name }}() { return {{ var.name }}; }
     void set_{{ var.name }}(double _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
 
-    {% endif %}
-    {% endfor %}
-
-    {% for var in pop.variables %}
-    {% if var.local %}
+    {% elif var.scope == 'local'%}
     std::vector< double > get_{{ var.name }}() { return {{ var.name }}; }
     double get_single_{{ var.name }}(int rank) { return {{ var.name }}[rank]; }
     void set_{{ var.name }}(std::vector< double > _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
@@ -73,14 +65,11 @@ struct {{ pop._class_name }} {
     void set_single_g_exc(int rank, double _g_exec) { g_exc[rank] = _g_exec; }
 
     void init_population() {
-        {% for var in pop.variables %}
-        {% if not var.local %}
-        {{ var.name }} = 0.0;
-        {% endif %}
-        {% endfor %}
 
-        {% for var in pop.variables %}
-        {% if var.local %}
+        {% for var in population.neuron.parameters.vars %}
+        {% if var.scope == 'global'%}
+        {{ var.name }} = 0.0;
+        {% elif var.scope == 'local'%}
         {{ var.name }} = std::vector<double>(size, 0.0);
         {% endif %}
         {% endfor %}
