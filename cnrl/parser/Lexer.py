@@ -25,68 +25,76 @@ def is_scope_valid(scope):
 
 def parameters_lexer(parameters):
     params = []
-    lines = split("[\n;]", parameters)
-    lines = (lambda x: [i.strip() for i in x])(lines)
-    # TODO Handle syntax error(apply a regular expression)
-    for line in lines:
-        param_pieces = split("[=:]", line)
-        if len(param_pieces) < 2 or len(param_pieces) > 3:
-            # TODO generate custom exception
-            raise Exception("Invalid syntax for parameters argument")
-        else:
-            name = param_pieces[0].strip()
-            if not is_name_valid:
+    if parameters != "":
+        lines = split("[\n;]", parameters)
+        lines = (lambda x: [i.strip() for i in x])(lines)
+        # TODO Handle syntax error(apply a regular expression)
+        for line in lines:
+            param_pieces = split("[=:]", line)
+            if len(param_pieces) < 2 or len(param_pieces) > 3:
                 # TODO generate custom exception
-                raise Exception("Invalid name for a parameter")
-            value = param_pieces[1].strip()
-            if not is_value_valid(value):
-                # TODO generate custom exception
-                raise Exception("Invalid value for a parameter")
-            eq = name + "=" + value
-            if len(param_pieces) > 2:
-                scope = param_pieces[2].strip()
-                if not is_scope_valid(scope):
-                    # TODO generate custom exception
-                    raise Exception("Invalid flag for a parameter")
+                raise Exception("Invalid syntax for parameters argument")
             else:
-                scope = "self"
+                name = param_pieces[0].strip()
+                if not is_name_valid:
+                    # TODO generate custom exception
+                    raise Exception("Invalid name for a parameter")
+                value = param_pieces[1].strip()
+                if not is_value_valid(value):
+                    # TODO generate custom exception
+                    raise Exception("Invalid value for a parameter")
+                eq = name + "=" + value
+                if len(param_pieces) > 2:
+                    scope = param_pieces[2].strip()
+                    if not is_scope_valid(scope):
+                        # TODO generate custom exception
+                        raise Exception("Invalid flag for a parameter")
+                else:
+                    scope = "self"
 
-        value = float(value)
-        params.append({"name": name,
-                       "init": value,
-                       "scope": scope,
-                       "ctype": "double",
-                       "eq": eq})
+            value = float(value)
+            params.append({"name": name,
+                           "init": value,
+                           "scope": scope,
+                           "ctype": "double",
+                           "eq": eq})
 
     return params
 
 
+def ode_var_name(lhs):
+    return findall("d([\w]+)/dt", lhs)
+
+
 def equations_lexer(equations):
     eqs = []
-    lines = split("[\n;]", equations)
-    lines = (lambda x: [i.strip() for i in x])(lines)
-    for line in lines:
-        try:
-            eq, flag = split("[:]", line, maxsplit=1)
-        except ValueError:
-            eq = line
-            flag = ""
+    if equations != "":
+        lines = split("[\n;]", equations)
+        lines = (lambda x: [i.strip() for i in x])(lines)
+        for line in lines:
+            try:
+                eq, flag = split("[:]", line, maxsplit=1)
+            except ValueError:
+                eq = line
+                flag = ""
 
-        try:
-            lhs, rhs = (lambda x: [i.strip() for i in x])(split("[+-/*%]?=", eq))
-            if rhs is "":
+            try:
+                lhs, rhs = (lambda x: [i.strip() for i in x])(split("[+\-/*%]?=", eq))
+                if rhs is "":
+                    # TODO generate custom exception
+                    raise Exception("Invalid syntax for an equation")
+                op = split("=", eq)[0][-1]
+                if op in ["+", "-", "*", "/", "%"]:
+                    rhs = lhs + op + "(" + rhs + ")"
+            except ValueError:
                 # TODO generate custom exception
                 raise Exception("Invalid syntax for an equation")
-            op = split("=", eq)[0][-1]
-            if op in ["+", "-", "*", "/", "%"]:
-                rhs = lhs + op + "(" + rhs + ")"
-        except ValueError:
-            # TODO generate custom exception
-            raise Exception("Invalid syntax for an equation")
 
-        eqs.append({"lhs": lhs,
-                    "rhs": rhs,
-                    "constraint": flag})
+            is_ode = len(ode_var_name(lhs)) == 1
+            eqs.append({"lhs": lhs,
+                        "rhs": rhs,
+                        "constraint": flag,
+                        "is_ode": is_ode})
     return eqs
 
 
@@ -97,7 +105,7 @@ def variable_lexer(equations):
         if is_name_valid(lhs):
             name = lhs
         else:
-            name = findall("d([\w]+)/dt", lhs)
+            name = ode_var_name(lhs)
             if len(name) == 1:
                 name = name[0].strip()
             else:
@@ -128,3 +136,31 @@ def variable_lexer(equations):
                           "ctype": "double",
                           "eq": equation})
     return variables
+
+
+def conditional_equations_lexer(equations):
+    # TODO extend this function more complex conditional equations
+    eqs = []
+    eq = equations
+    if equations != "":
+        try:
+            lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\>\<]=?", eq))
+            if rhs is "":
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+            op = findall("[\>\<]=?", eq)
+        except ValueError:
+            try:
+                lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\!=]=", eq))
+                if rhs is "":
+                    # TODO generate custom exception
+                    raise Exception("Invalid syntax for an equation")
+                op = findall("[\!=]=?", eq)
+            except ValueError:
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+
+        eqs.append({"lhs": lhs,
+                    "rhs": rhs,
+                    "op": op})
+    return eqs
