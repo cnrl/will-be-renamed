@@ -1,4 +1,4 @@
-from sympy import sympify, symbols, Eq
+from sympy import sympify, Eq
 
 from cnrl.parser.Lexer import parameters_lexer, equations_lexer, variable_lexer, conditional_equations_lexer
 
@@ -14,8 +14,21 @@ def parse_equations(equations):
     for eq in equations:
         lhs = sympify(eq["lhs"], evaluate=False)
         rhs = sympify(eq["rhs"], evaluate=False)
-        eqs.append(Eq(lhs, rhs))
+        constraints = eq["constraint"]  # TODO check constraint validity(syntax)
+        eqs.append({"lhs_parsed": lhs,
+                    "rhs_parsed": rhs,
+                    "is_ode": eq["is_ode"],
+                    "constraints": constraints,
+                    "equation_parsed": Eq(lhs, rhs)})
     return eqs, variables
+
+
+def parse_reset(equations):
+    eqs, var = parse_equations(equations)
+    for eq in eqs:
+        if eq["is_ode"]:
+            raise Exception("Reset equation can not be an ODE")
+    return eqs, var
 
 
 def parse_conditions(conditions):
