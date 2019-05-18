@@ -136,3 +136,31 @@ def variable_lexer(equations):
                           "ctype": "double",
                           "eq": equation})
     return variables
+
+
+def conditional_equations_lexer(equations):
+    # TODO extend this function more complex conditional equations
+    eqs = []
+    eq = equations
+    if equations != "":
+        try:
+            lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\>\<]=?", eq))
+            if rhs is "":
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+            op = findall("[\>\<]=?", eq)
+        except ValueError:
+            try:
+                lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\!=]=", eq))
+                if rhs is "":
+                    # TODO generate custom exception
+                    raise Exception("Invalid syntax for an equation")
+                op = findall("[\!=]=?", eq)
+            except ValueError:
+                # TODO generate custom exception
+                raise Exception("Invalid syntax for an equation")
+
+        eqs.append({"lhs": lhs,
+                    "rhs": rhs,
+                    "op": op})
+    return eqs
