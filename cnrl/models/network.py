@@ -1,6 +1,6 @@
 from cnrl.exceptions import IllegalArgumentException
-from cnrl.models.Population import Population
-from cnrl.models.Connection import Connection
+from cnrl.models.population import Population
+from cnrl.models.connection import Connection
 
 
 class Network:

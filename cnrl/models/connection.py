@@ -1,5 +1,5 @@
-from cnrl.models.Population import Population
-from cnrl.models.Synapse import Synapse
+from cnrl.models.population import Population
+from cnrl.models.synapse import Synapse
 from cnrl.exceptions import IllegalArgumentException
 
 

@@ -1,7 +1,7 @@
 from functools import reduce
 
 from cnrl.exceptions import IllegalArgumentException
-from cnrl.models.Neuron import Neuron
+from cnrl.models.neuron import Neuron
 
 
 class Population:
