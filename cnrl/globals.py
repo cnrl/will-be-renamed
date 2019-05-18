@@ -1,5 +1,6 @@
-forbidden_pop_var_names = ['t', 'dt', 'size', 'last_spike', 'spiked', 'v', 'r', 'g_exec']
+FORBIDDEN_POP_VAR_NAMES = ('t', 'dt', 'size', 'last_spike', 'spiked', 'v', 'r', 'g_exec')
+FORBIDDEN_PROJ_VAR_NAMES = ('t', 'dt', 'size', 'post_rank', 'pre_rank', 'w', 'inv_pre_rank', 'inv_post_rank')
+PACKAGE_NAME = 'cnrl'
 
-forbidden_proj_var_names = ['t', 'dt', 'size', 'post_rank', 'pre_rank', 'w', 'inv_pre_rank', 'inv_post_rank']
-
-package_name = 'cnrl'
+keywords = []
+named_constants = []
