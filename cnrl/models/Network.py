@@ -1,5 +1,7 @@
 from cnrl.generals import networks
 from cnrl.models.Population import Population
+from cnrl.parser.Parser import parse_conditions, parse_mathematical_expr, parse_equations, parse_parameters, parse_reset
+
 
 class Network(object):
     """
@@ -35,4 +37,23 @@ class Network(object):
         # TODO: add other classes (Connection, ...)
 
     def compile(self):
+        network_objects = {"population": {"equations": [], "param_var": [], "reset": [], "spike": []},
+                           "connection": {"equations": [], "param_var": [], "psp": [], "pre": [], "post": []}}
+        for pop in self.populations:
+            network_objects["population"]["param_var"].append(parse_parameters(pop.neuron.parameters))
+            network_objects["population"]["equations"].append(parse_equations(pop.neuron.equations))
+            network_objects["population"]["reset"].append(parse_reset(pop.neuron.reset))
+            network_objects["population"]["spike"].append(parse_conditions(pop.neuron.spike))
+        for con in self.connections:
+            network_objects["connection"]["param_var"].append(parse_parameters(con.synapse.parameters))
+            network_objects["connection"]["equations"].append(parse_equations(con.synapse.equations))
+            network_objects["connection"]["psp"].append(parse_mathematical_expr(con.synapse.psp))
+            network_objects["connection"]["pre"].append(parse_equations(con.synapse.pre))
+            network_objects["connection"]["post"].append(parse_equations(con.synapse.post))
+        for obj in network_objects["population"]:
+            if len(set(obj["param_var"])) != len(obj["param_var"]):
+                raise Exception("Same name for multiple variables")
+        for obj in network_objects["connection"]:
+            if len(set(obj["param_var"])) != len(obj["param_var"]):
+                raise Exception("Same name for multiple variables")
         pass
