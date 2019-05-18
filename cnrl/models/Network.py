@@ -1,38 +1,42 @@
-from cnrl.generals import networks
+from cnrl.exceptions import IllegalArgumentException
 from cnrl.models.Population import Population
+from cnrl.models.Connection import Connection
 
-class Network(object):
+
+class Network:
     """
         Class to build a network.
-
-        Methods:
-        > add(obj): Adds an object to the network
-        > compile(): Every defined network needs to be compiled before simulation using the compile method.
     """
     _instance_count = 0
 
-    def __init__(self, objects=None, name=None):
+    def __init__(self, populations=None, connections=None):
         """
             Parameters:
 
-            > objects: A list of objects to be added to the network. Each object is either a population or a connections.
-            > name: Name of the network.
+            > populations: A list of population to be added to the network.
+            > connections: A list of connections to be added to the network.
         """
-        self.populations = []
-        self.connections = []
-        if objects is not None:
-            for obj in objects:
-                self.add(obj)
-        self.name = name or "Network_{}".format(self._instance_count)
+        self.populations = populations if populations is not None else []
+        self.connections = connections if connections is not None else []
 
+        self._check_args()
+
+        self.c_module = None
+        self._id = Network._instance_count
         self._instance_count += 1
-        networks.append(self)
-
-    def add(self, obj):
-        if issubclass(obj, Population):
-            if obj not in self.populations:
-                self.populations.append(obj)
-        # TODO: add other classes (Connection, ...)
 
     def compile(self):
         pass
+
+    def _check_args(self):
+        if not isinstance(self.populations, (list, tuple)) or \
+                not all([isinstance(pop, Population) for pop in self.populations]):
+            raise IllegalArgumentException(
+                self.__class__.__name__ + ".populations must be a list of " + Population.__class__.__name__
+            )
+
+        if not isinstance(self.connections, (list, tuple)) or \
+                not all([isinstance(con, Connection) for con in self.connections]):
+            raise IllegalArgumentException(
+                self.__class__.__name__ + ".connection must be a list of " + Connection.__class__.__name__
+            )
