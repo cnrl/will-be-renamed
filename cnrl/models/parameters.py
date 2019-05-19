@@ -15,31 +15,35 @@ class Parameters:
 
 
 class NeuronParameters(Parameters):
+    # TODO: check if all parameters are not in globals.FORBIDDEN_POP_VAR_NAMES
+
     def __init__(self, definitions):
         super(NeuronParameters, self).__init__(definitions)
-        # TODO create something like this with parser as we talk
-        self.vars = [
-            {
-                'name': 'x',
-                'scope': 'local'
-            },
-            {
-                'name': 'immrmissikslookatme',
-                'scope': 'global'
-            }
-        ]
-    # TODO: check if all parameters are not in globals.FORBIDDEN_POP_VAR_NAMES
-    pass
+
+        # TODO: fill this like:
+        # self.vars = [
+        #     {
+        #         'name': 'x',
+        #         'scope': 'local'
+        #     },
+        #     {
+        #         'name': 'y',
+        #         'scope': 'global'
+        #     }
+        # ]
+        self.vars = []
 
 
 class SynapseParameters(Parameters):
+    # TODO: check if all parameters are not in globals.FORBIDDEN_PROJ_VAR_NAMES
+
     def __init__(self, definitions):
         super(SynapseParameters, self).__init__(definitions)
-        # TODO create something like this with parser as we talk
-        self.vars = [
-            {
-                'name': 'x'
-            }
-        ]
-    # TODO: check if all parameters are not in globals.FORBIDDEN_PROJ_VAR_NAMES
-    pass
+
+        # TODO: fill this like:
+        # self.vars = [
+        #     {
+        #         'name': 'x'
+        #     }¬
+        # ]
+        self.vars = []
