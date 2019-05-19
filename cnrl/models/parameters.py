@@ -44,6 +44,6 @@ class SynapseParameters(Parameters):
         # self.vars = [
         #     {
         #         'name': 'x'
-        #     }¬
+        #     }
         # ]
         self.vars = []
