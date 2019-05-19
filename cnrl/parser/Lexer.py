@@ -1,6 +1,6 @@
 from re import split, compile, findall
 
-from cnrl.generals import named_constants, keywords
+from cnrl.globals import named_constants, keywords
 
 
 def is_name_valid(name):
