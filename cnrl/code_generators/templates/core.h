@@ -1,12 +1,15 @@
+#pragma once
+
 #include <vector>
 #include <queue>
+#include <map>
 
 {% for population in populations %}
-#include "Population{{ population.id }}.hpp"
+#include "population{{ population.id }}.hpp"
 {% endfor %}
 
 {% for connection in connections %}
-#include "Connection{{ connection.id }}.hpp"
+#include "connection{{ connection.id }}.hpp"
 {% endfor %}
 
 extern double dt;

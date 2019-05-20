@@ -1,3 +1,4 @@
+# cython: embedsignature=True
 from libcpp.vector cimport vector
 import numpy as np
 cimport numpy as np

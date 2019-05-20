@@ -10,6 +10,8 @@ def generate(net_id, populations, connections):
 
     _generate_files(base_path, populations, connections)
 
+    _compile_files(base_path)
+
 
 def _create_dirs(net_id):
     cwd = os.getcwd()
@@ -34,6 +36,7 @@ def _generate_files(base_path, populations, connections):
     template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
 
     _generate_cpp_codes(base_path, template_env, populations, connections)
+    _generate_make_file(base_path, template_env)
 
 
 def _generate_cpp_codes(base_path, template_env, populations, connections):
@@ -95,3 +98,37 @@ def _generate_wrapper(base_path, template_env, populations, connections):
     file.write(rendered)
 
     file.close()
+
+
+def _generate_make_file(base_path, template_env):
+    import numpy
+    import sys
+    from distutils.sysconfig import get_python_version
+
+    template = template_env.get_template('Makefile')
+
+    numpy_includes = "-I" + numpy.get_include()
+
+    python_linalg = "-lpython" + get_python_version() + "m"
+
+    python_lib = sys.base_prefix + '/lib'
+
+    rendered = template.render(
+        numpy_includes=numpy_includes,
+        python_linalg=python_linalg,
+        python_lib=python_lib
+    )
+
+    full_path = os.path.join(base_path, 'Makefile')
+    file = open(full_path, "w+")
+
+    file.write(rendered)
+
+    file.close()
+
+
+def _compile_files(base_path):
+    os.chdir(base_path)
+    return_code = os.system('make')
+    if return_code:
+        raise RuntimeError('make process failed')

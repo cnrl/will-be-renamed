@@ -1,5 +1,7 @@
-#include "Population{{ connection.pre.id }}.hpp"
-#include "Population{{ connection.post.id }}.hpp"
+#pragma once
+
+#include "population{{ connection.pre.id }}.hpp"
+#include "population{{ connection.post.id }}.hpp"
 
 extern Population{{ connection.pre.id }} population{{ connection.pre.id }} ;
 extern Population{{ connection.post.id }} population{{ connection.post.id }} ;
@@ -15,7 +17,7 @@ struct Connection{{ connection.id }} {
     std::vector< std::vector<double > > {{ var.name }};
     {% endfor %}
 
-    void init_projection() {
+    void init_connection() {
         inverse_connectivity_matrix();
 
         {% for var in connection.synapse.parameters.vars %}
@@ -69,13 +71,6 @@ struct Connection{{ connection.id }} {
                 w[i][j] += _w ;
             }
         }
-    }
-
-    int get_size() {
-        return size;
-    }
-    void set_size(int _size) {
-        size = _size;
     }
 
     std::vector<int> get_post_rank() {
@@ -156,4 +151,4 @@ struct Connection{{ connection.id }} {
     }
 
     {% endfor %}
-}
+};
