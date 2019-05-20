@@ -23,7 +23,7 @@ class Network:
 
         self.c_module = None
         self.id = Network._instance_count
-        self._instance_count += 1
+        Network._instance_count += 1
 
     def compile(self):
         pass

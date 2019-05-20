@@ -40,6 +40,8 @@ def _generate_cpp_codes(base_path, template_env, populations, connections):
     _generate_core(base_path, template_env, populations, connections)
     _generate_populations(base_path, template_env, populations)
     _generate_connections(base_path, template_env, connections)
+    _generate_wrapper(base_path, template_env, populations, connections)
+
 
 def _generate_core(base_path, template_env, populations, connections):
     for template_name in ['core.h', 'core.cpp']:
@@ -67,11 +69,11 @@ def _generate_populations(base_path, template_env, populations):
 
         file.close()
 
+
 def _generate_connections(base_path, template_env, connections):
     template = template_env.get_template('connection.hpp')
 
     for connection in connections:
-        print(connection)
         rendered = template.render(connection=connection)
         full_path = os.path.join(base_path, 'connection{}.hpp'.format(connection.id))
 
@@ -81,3 +83,15 @@ def _generate_connections(base_path, template_env, connections):
 
         file.close()
 
+
+def _generate_wrapper(base_path, template_env, populations, connections):
+    template = template_env.get_template('wrapper.pyx')
+
+    rendered = template.render(populations=populations, connections=connections)
+
+    full_path = os.path.join(base_path, 'wrapper.pyx')
+    file = open(full_path, "w+")
+
+    file.write(rendered)
+
+    file.close()

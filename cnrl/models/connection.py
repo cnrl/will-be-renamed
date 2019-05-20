@@ -24,7 +24,7 @@ class Connection:
         self._check_args()
 
         self.id = Connection._instance_count
-        self._instance_count += 1
+        Connection._instance_count += 1
 
     def _check_args(self):
         if not isinstance(self.pre, Population):

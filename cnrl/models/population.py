@@ -27,7 +27,7 @@ class Population:
         self.size = reduce(lambda x, y: x * y, self.shape)
 
         self.id = Population._instance_count
-        self._instance_count += 1
+        Population._instance_count += 1
 
     def _check_args(self):
         if not isinstance(self.shape, tuple) or \

@@ -5,8 +5,6 @@ extern Population{{ connection.pre.id }} population{{ connection.pre.id }} ;
 extern Population{{ connection.post.id }} population{{ connection.post.id }} ;
 
 struct Connection{{ connection.id }} {
-    int size;
-
     std::vector<int> post_rank;
     std::vector< std::vector< int > > pre_rank;
     std::vector< std::vector< double > > w;
