@@ -2,11 +2,11 @@
 #include <queue>
 
 {% for population in populations %}
-#include "Population{{ population._id }}.hpp"
+#include "Population{{ population.id }}.hpp"
 {% endfor %}
 
 {% for connection in connections %}
-#include "Connection{{ connection._id }}.hpp"
+#include "Connection{{ connection.id }}.hpp"
 {% endfor %}
 
 extern double dt;
@@ -19,11 +19,11 @@ double get_dt() ;
 void set_dt(double _dt);
 
 {% for population in populations %}
-extern Population{{ population._id }} population{{ population._id }};
+extern Population{{ population.id }} population{{ population.id }};
 {% endfor %}
 
 {% for connection in connections %}
-extern Connection{{ connection._id }} connection{{ connection._id }};
+extern Connection{{ connection.id }} connection{{ connection.id }};
 {% endfor %}
 
 void initialize(double _dt) ;

@@ -23,7 +23,7 @@ class Connection:
 
         self._check_args()
 
-        self._id = Connection._instance_count
+        self.id = Connection._instance_count
         self._instance_count += 1
 
     def _check_args(self):

@@ -1,10 +1,10 @@
-#include "pop0.hpp"
-#include "pop1.hpp"
+#include "Population{{ connection.pre.id }}.hpp"
+#include "Population{{ connection.post.id }}.hpp"
 
-extern PopStruct0 pop0;
-extern PopStruct1 pop1;
+extern Population{{ connection.pre.id }} population{{ connection.pre.id }} ;
+extern Population{{ connection.post.id }} population{{ connection.post.id }} ;
 
-struct ProjStruct0{
+struct Connection{{ connection.id }} {
     int size;
 
     std::vector<int> post_rank;
@@ -13,14 +13,16 @@ struct ProjStruct0{
     std::map< int, std::vector< std::pair<int, int> > > inv_pre_rank ;
     std::vector< int > inv_post_rank ;
 
-    std::vector< std::vector<double > > tau;
-    std::vector< std::vector<double > > alpha;
+    {% for var in connection.synapse.parameters.vars %}
+    std::vector< std::vector<double > > {{ var.name }};
+    {% endfor %}
 
     void init_projection() {
         inverse_connectivity_matrix();
 
-        tau = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
-        alpha = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
+        {% for var in connection.synapse.parameters.vars %}
+        {{ var.name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
+        {% endfor %}
     }
 
     void inverse_connectivity_matrix() {
@@ -31,32 +33,28 @@ struct ProjStruct0{
             }
         }
 
-        inv_post_rank = std::vector<int> (pop1.size, -1);
+        inv_post_rank = std::vector<int> (population{{ connection.post.id }}.size, -1);
         for(int i = 0; i < post_rank.size(); i++) {
             inv_post_rank[post_rank[i]] = i;
         }
     }
 
     void compute_psp() {
-        int nb_post;
-        double sum;
+        for(int pre_idx = 0; pre_idx < population{{ connection.pre.id }}.spiked.size(); pre_idx++) {
 
-        for(int _idx_j = 0; _idx_j < pop0.spiked.size(); _idx_j++) {
+            int spiked_idx = population{{ connection.pre.id }}.spiked[pre_idx];
 
-            int rk_j = pop0.spiked[_idx_j];
-
-            auto inv_post_ptr = inv_pre_rank.find(rk_j);
+            auto inv_post_ptr = inv_pre_rank.find(spiked_idx);
             if (inv_post_ptr == inv_pre_rank.end())
                 continue;
 
-            std::vector< std::pair<int, int> >& inv_post = inv_post_ptr->second;
+            std::vector< std::pair<int, int> > &inv_post = inv_post_ptr->second;
 
-            int nb_post = inv_post.size();
-            for(int _idx_i = 0; _idx_i < nb_post; _idx_i++){
-                int i = inv_post[_idx_i].first;
-                int j = inv_post[_idx_i].second;
+            for(int post_idx = 0; post_idx < inv_post.size(); post_idx++) {
+                int i = inv_post[post_idx].first;
+                int j = inv_post[post_idx].second;
 
-                pop1.g_exc[post_rank[i]] += w[i][j];
+                population{{ connection.post.id }}.g_exc[post_rank[i]] += w[i][j];
             }
         }
     }
@@ -68,54 +66,96 @@ struct ProjStruct0{
             for(int j = 0; j < pre_rank[i].size(); j++) {
                 int rk_pre = pre_rank[i][j];
 
-                double _w = -pop1.r[rk_post] * (pop1.r[rk_post] * w[i][j] - pop0.r[rk_pre]) / 5000;
+                double _w = -population{{ connection.post.id }}.r[rk_post] * (population{{ connection.post.id }}.r[rk_post] * w[i][j] - population{{ connection.pre.id }}.r[rk_pre]) / 5000;
 
                 w[i][j] += _w ;
             }
         }
     }
 
-    int get_size() { return size; }
-    void set_size(int _size) { size = _size; }
+    int get_size() {
+        return size;
+    }
+    void set_size(int _size) {
+        size = _size;
+    }
 
-    std::vector<int> get_post_rank() { return post_rank; }
-    void set_post_rank(std::vector<int> _post_rank) { post_rank = _post_rank; }
-    std::vector< std::vector<int> > get_pre_rank() { return pre_rank; }
-    void set_pre_rank(std::vector< std::vector<int> > _pre_rank) { pre_rank = _pre_rank; }
-    int nb_synapses(int n) { return pre_rank[n].size(); }
+    std::vector<int> get_post_rank() {
+        return post_rank;
+    }
+
+    void set_post_rank(std::vector<int> _post_rank) {
+        post_rank = _post_rank;
+    }
+
+    std::vector< std::vector<int> > get_pre_rank() {
+        return pre_rank;
+    }
+
+    void set_pre_rank(std::vector< std::vector<int> > _pre_rank) {
+        pre_rank = _pre_rank;
+    }
+
+    int nb_synapses(int n) {
+        return pre_rank[n].size();
+    }
 
     std::vector<std::vector< double > > get_w() {
         std::vector< std::vector< double > > w_new(w.size(), std::vector<double>());
-        for(int i = 0; i < w.size(); i++) {
+
+        for(int i = 0; i < w.size(); i++)
             w_new[i] = std::vector<double>(w[i].begin(), w[i].end());
-        }
+
         return w_new;
     }
-    std::vector< double > get_dendrite_w(int rank) { return std::vector<double>(w[rank].begin(), w[rank].end()); }
-    double get_synapse_w(int rank_post, int rank_pre) { return w[rank_post][rank_pre]; }
+
+    std::vector< double > get_dendrite_w(int rank) {
+        return std::vector<double>(w[rank].begin(), w[rank].end());
+    }
+
+    double get_synapse_w(int rank_post, int rank_pre) {
+        return w[rank_post][rank_pre];
+    }
+
     void set_w(std::vector<std::vector< double > > _w) {
         w = std::vector< std::vector<double> >(_w.size(), std::vector<double>());
-        for(int i = 0; i < _w.size(); i++) {
+
+        for(int i = 0; i < _w.size(); i++)
             w[i] = std::vector<double>(_w[i].begin(), _w[i].end());
-        }
     }
-    void set_dendrite_w(int rank, std::vector< double > _w) { w[rank] = std::vector<double>(_w.begin(), _w.end()); }
-    void set_synapse_w(int rank_post, int rank_pre, double _w) { w[rank_post][rank_pre] = _w; }
 
+    void set_dendrite_w(int rank, std::vector< double > _w) {
+        w[rank] = std::vector<double>(_w.begin(), _w.end());
+    }
 
-    // Local parameter tau
-    std::vector<std::vector< double > > get_tau() { return tau; }
-    std::vector<double> get_dendrite_tau(int rk) { return tau[rk]; }
-    double get_synapse_tau(int rk_post, int rk_pre) { return tau[rk_post][rk_pre]; }
-    void set_tau(std::vector<std::vector< double > >value) { tau = value; }
-    void set_dendrite_tau(int rk, std::vector<double> value) { tau[rk] = value; }
-    void set_synapse_tau(int rk_post, int rk_pre, double value) { tau[rk_post][rk_pre] = value; }
+    void set_synapse_w(int rank_post, int rank_pre, double _w) {
+        w[rank_post][rank_pre] = _w;
+    }
 
-    // Local parameter alpha
-    std::vector<std::vector< double > > get_alpha() { return alpha; }
-    std::vector<double> get_dendrite_alpha(int rk) { return alpha[rk]; }
-    double get_synapse_alpha(int rk_post, int rk_pre) { return alpha[rk_post][rk_pre]; }
-    void set_alpha(std::vector<std::vector< double > >value) { alpha = value; }
-    void set_dendrite_alpha(int rk, std::vector<double> value) { alpha[rk] = value; }
-    void set_synapse_alpha(int rk_post, int rk_pre, double value) { alpha[rk_post][rk_pre] = value; }
-};
+    {% for var in connection.synapse.parameters.vars %}
+    std::vector<std::vector< double > > get_{{ var.name }}() {
+        return {{ var.name }};
+    }
+
+    std::vector<double> get_dendrite_{{ var.name }}(int rank) {
+        return {{ var.name }}[rank];
+    }
+
+    double get_synapse_{{ var.name }}(int rank_post, int rank_pre) {
+        return {{ var.name }}[rank_post][rank_pre];
+    }
+
+    void set_{{ var.name }}(std::vector<std::vector< double > >value) {
+        {{ var.name }} = value;
+    }
+
+    void set_dendrite_{{ var.name }}(int rank, std::vector<double> value) {
+        {{ var.name }}[rank] = value;
+    }
+
+    void set_synapse_{{ var.name }}(int rank_post, int rank_pre, double value) {
+        {{ var.name }}[rank_post][rank_pre] = value;
+    }
+
+    {% endfor %}
+}

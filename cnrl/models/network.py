@@ -22,7 +22,7 @@ class Network:
         self._check_args()
 
         self.c_module = None
-        self._id = Network._instance_count
+        self.id = Network._instance_count
         self._instance_count += 1
 
     def compile(self):

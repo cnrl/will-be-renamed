@@ -4,11 +4,11 @@ double dt;
 long int t;
 
 {% for population in populations %}
-Population{{ population._id }} population{{ population._id }};
+Population{{ population.id }} population{{ population.id }};
 {% endfor %}
 
 {% for connection in connections %}
-Connection{{ connection._id }} connection{{ connection._id }};
+Connection{{ connection.id }} connection{{ connection.id }};
 {% endfor %}
 
 void single_step();
@@ -24,26 +24,26 @@ void initialize(double _dt) {
     t = (long int)(0);
 
     {% for population in populations %}
-    population{{ population._id }}.init_population();
+    population{{ population.id }}.init_population();
     {% endfor %}
 
     {% for connection in connections %}
-    connection{{ connection._id }}.init_connection();
+    connection{{ connection.id }}.init_connection();
     {% endfor %}
 }
 
 void single_step()
 {
     {% for connection in connections %}
-    connection{{ connection._id }}.compute_psp();
+    connection{{ connection.id }}.compute_psp();
     {% endfor %}
 
     {% for population in populations %}
-    population{{ population._id }}.update();
+    population{{ population.id }}.update();
     {% endfor %}
 
     {% for connection in connections %}
-    connection{{ connection._id }}.update_synapse();
+    connection{{ connection.id }}.update_synapse();
     {% endfor %}
 
     t++;

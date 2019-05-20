@@ -26,7 +26,7 @@ class Population:
         self.dimension = len(self.shape)
         self.size = reduce(lambda x, y: x * y, self.shape)
 
-        self._id = Population._instance_count
+        self.id = Population._instance_count
         self._instance_count += 1
 
     def _check_args(self):

@@ -3,7 +3,7 @@
 extern double dt;
 extern long int t;
 
-struct Population{{ population._id }} {
+struct Population{{ population.id }} {
 
     int size;
 

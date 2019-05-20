@@ -39,7 +39,7 @@ def _generate_files(base_path, populations, connections):
 def _generate_cpp_codes(base_path, template_env, populations, connections):
     _generate_core(base_path, template_env, populations, connections)
     _generate_populations(base_path, template_env, populations)
-
+    _generate_connections(base_path, template_env, connections)
 
 def _generate_core(base_path, template_env, populations, connections):
     for template_name in ['core.h', 'core.cpp']:
@@ -60,9 +60,24 @@ def _generate_populations(base_path, template_env, populations):
     for population in populations:
         rendered = template.render(population=population)
 
-        full_path = os.path.join(base_path, 'population{}.hpp'.format(population._id))
+        full_path = os.path.join(base_path, 'population{}.hpp'.format(population.id))
         file = open(full_path, "w+")
 
         file.write(rendered)
 
         file.close()
+
+def _generate_connections(base_path, template_env, connections):
+    template = template_env.get_template('connection.hpp')
+
+    for connection in connections:
+        print(connection)
+        rendered = template.render(connection=connection)
+        full_path = os.path.join(base_path, 'connection{}.hpp'.format(connection.id))
+
+        file = open(full_path, "w+")
+
+        file.write(rendered)
+
+        file.close()
+
