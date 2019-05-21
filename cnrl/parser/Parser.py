@@ -9,7 +9,6 @@ def parse_parameters(parameters):
 
 def parse_equations(equations):
     equations = equations_lexer(equations)
-    variables = variable_lexer(equations)
     eqs = []
     for eq in equations:
         lhs = sympify(eq["lhs"], evaluate=False)
@@ -20,7 +19,7 @@ def parse_equations(equations):
                     "is_ode": eq["is_ode"],
                     "constraints": constraints,
                     "equation_parsed": Eq(lhs, rhs)})
-    return eqs, variables
+    return eqs
 
 
 def parse_reset(equations):

@@ -100,14 +100,12 @@ def equations_lexer(equations):
                         "is_ode": is_ode})
     return eqs
 
-def get_equation_variables(equations):
-    equations = equations_lexer(equations)
-    return variable_lexer(equations)
 
 def variable_lexer(equations):
     variables = []
     for eq in equations:
-        lhs = eq["lhs"]
+        lhs = str(eq["lhs_parsed"])
+        print(lhs)
         if is_name_valid(lhs):
             name = lhs
         else:
@@ -117,7 +115,7 @@ def variable_lexer(equations):
             else:
                 # TODO generate custom exception
                 raise Exception("Invalid syntax for an equation")
-        constraint = eq["constraint"]
+        constraint = eq["constraints"]
         if constraint is not "":
             flag = (lambda x: [i.strip() for i in x])(split("=", constraint, maxsplit=1))
             if flag[0] != "init":
@@ -134,13 +132,13 @@ def variable_lexer(equations):
         else:
             val = "0.0"
 
-        equation = lhs + "=" + eq["rhs"]
+        rhs = eq["rhs_parsed"]
         val = float(val)
         variables.append({"name": name,
                           "init": val,
                           "scope": "self",
                           "ctype": "double",
-                          "eq": equation})
+                          "rhs": rhs})
     return variables
 
 
