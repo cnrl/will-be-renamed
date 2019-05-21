@@ -18,8 +18,8 @@ class Neuron:
         """
         self.parameters = NeuronParameters(parameters)
         self.equations = NeuronEquations(equations)
-        self.spike = NeuronEquations(spike) if spike is not None else None
-        self.reset = NeuronEquations(reset) if reset is not None else None
+        self.spike = None #NeuronEquations(spike) if spike is not None else None
+        self.reset = None #NeuronEquations(reset) if reset is not None else None
 
     def __repr__(self):
         return self.__class__.__name__ + """(

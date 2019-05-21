@@ -30,6 +30,8 @@ def parameters_lexer(parameters):
         lines = (lambda x: [i.strip() for i in x])(lines)
         # TODO Handle syntax error(apply a regular expression)
         for line in lines:
+            if not line:
+                continue
             param_pieces = split("[=:]", line)
             if len(param_pieces) < 2 or len(param_pieces) > 3:
                 # TODO generate custom exception
@@ -43,7 +45,7 @@ def parameters_lexer(parameters):
                 if not is_value_valid(value):
                     # TODO generate custom exception
                     raise Exception("Invalid value for a parameter")
-                eq = name + "=" + value
+
                 if len(param_pieces) > 2:
                     scope = param_pieces[2].strip()
                     if not is_scope_valid(scope):
@@ -56,8 +58,7 @@ def parameters_lexer(parameters):
             params.append({"name": name,
                            "init": value,
                            "scope": scope,
-                           "ctype": "double",
-                           "eq": eq})
+                           "ctype": "double"})
 
     return params
 
