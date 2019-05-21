@@ -14,7 +14,7 @@ class Synapse:
             > parameters: Parameters of the synapse and their initial values.
             > equations: Equations of the synapse, defining the temporal evolution of variables.
         """
-        self.parameters = SynapseParameters(parameters)
+        self.parameters = SynapseParameters(parameters, equations)
         self.equations = SynapseEquations(equations)
 
     def __repr__(self):

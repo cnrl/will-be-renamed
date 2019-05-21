@@ -14,7 +14,9 @@ struct Connection{{ connection.id }} {
     std::vector< int > inv_post_rank ;
 
     {% for var in connection.synapse.parameters.vars %}
+    {% if var.name != 'w' %}
     std::vector< std::vector<double > > {{ var.name }};
+    {% endif %}
     {% endfor %}
 
     void init_connection() {
@@ -126,6 +128,7 @@ struct Connection{{ connection.id }} {
     }
 
     {% for var in connection.synapse.parameters.vars %}
+    {% if var.name != 'w' %}
     std::vector<std::vector< double > > get_{{ var.name }}() {
         return {{ var.name }};
     }
@@ -149,6 +152,6 @@ struct Connection{{ connection.id }} {
     void set_synapse_{{ var.name }}(int rank_post, int rank_pre, double value) {
         {{ var.name }}[rank_post][rank_pre] = value;
     }
-
+    {% endif %}
     {% endfor %}
 };

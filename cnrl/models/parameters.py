@@ -1,23 +1,27 @@
-from cnrl.parser.Lexer import parameters_lexer
+from cnrl.parser.Lexer import parameters_lexer, get_equation_variables
 from cnrl.exceptions import IllegalArgumentException
 
 
 class Parameters:
-    def __init__(self, definitions):
+    def __init__(self, definitions, equations):
         self.definitions = definitions
+        self.equations = equations
         self._check_args()
-        params = parameters_lexer(definitions)
-        param_set = set()
-        for param in params :
-            if param['name'] not in param_set:
-                param_set.add(param['name'])
+
+        variables = parameters_lexer(definitions) + get_equation_variables(equations)
+        var_set = set()
+        for var in variables :
+            if var['name'] not in var_set:
+                var_set.add(var['name'])
             else:
-                raise Exception("parameter {} is already defined in this scope".format(param['name']) )
-        self.vars = params
+                raise Exception("parameter {} is already defined in this scope".format(var['name']) )
+        self.vars = variables
 
     def _check_args(self):
         if not isinstance(self.definitions, str):
             raise IllegalArgumentException(self.__class__.__name__ + ".definitions must be a string")
+        if not isinstance(self.equations, str):
+            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
 
     def __repr__(self):
         return self.__class__.__name__ + "(\n\tdefinitions:" + self.definitions + ")"
@@ -26,13 +30,13 @@ class Parameters:
 class NeuronParameters(Parameters):
     # TODO: check if all parameters are not in globals.FORBIDDEN_POP_VAR_NAMES
 
-    def __init__(self, definitions):
-        super(NeuronParameters, self).__init__(definitions)
+    def __init__(self, definitions, equations):
+        super(NeuronParameters, self).__init__(definitions, equations)
 
 
 class SynapseParameters(Parameters):
     # TODO: check if all parameters are not in globals.FORBIDDEN_PROJ_VAR_NAMES
 
-    def __init__(self, definitions):
-        super(SynapseParameters, self).__init__(definitions)
+    def __init__(self, definitions, equations):
+        super(SynapseParameters, self).__init__(definitions, equations)
 

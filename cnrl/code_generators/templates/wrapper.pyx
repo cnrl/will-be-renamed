@@ -62,12 +62,14 @@ cdef extern from "core.h":
         void set_synapse_w(int, int, double)
 
         {% for var in connection.synapse.parameters.vars %}
+        {% if var.name != 'w' %}
         vector[vector[double]] get_{{ var.name }}()
         vector[double] get_dendrite_{{ var.name }}(int)
         double get_synapse_{{ var.name }}(int, int)
         void set_{{ var.name }}(vector[vector[double]])
         void set_dendrite_{{ var.name }}(int, vector[double])
         void set_synapse_{{ var.name }}(int, int, double)
+        {% endif %}
         {% endfor %}
     {% endfor %}
 
@@ -139,6 +141,7 @@ cdef class Connection{{ connection.id }}Wrapper:
         connection{{ connection.id }}.set_synapse_w(rank_post, rank_pre, value)
 
     {% for var in connection.synapse.parameters.vars %}
+    {% if var.name != 'w' %}
     def get_{{ var.name }}(self):
         return connection{{ connection.id }}.get_{{ var.name }}()
 
@@ -157,6 +160,7 @@ cdef class Connection{{ connection.id }}Wrapper:
     def set_synapse_{{ var.name }}(self, int rank_post, int rank_pre, double value):
         connection{{ connection.id }}.set_synapse_{{ var.name }}(rank_post, rank_pre, value)
 
+    {% endif %}
     {% endfor %}
 
 {% endfor %}

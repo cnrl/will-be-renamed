@@ -16,7 +16,7 @@ class Neuron:
             > spike: Spike emission condition.
             > reset: Changes to the variables after a spike.
         """
-        self.parameters = NeuronParameters(parameters)
+        self.parameters = NeuronParameters(parameters, equations)
         self.equations = NeuronEquations(equations)
         self.spike = None #NeuronEquations(spike) if spike is not None else None
         self.reset = None #NeuronEquations(reset) if reset is not None else None

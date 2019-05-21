@@ -4,7 +4,7 @@ from cnrl.globals import named_constants, keywords
 
 
 def is_name_valid(name):
-    pattern = compile("[a-zA-Z_][a-zA-Z0-9_]*")
+    pattern = compile("^[a-zA-Z_][a-zA-Z0-9_]*$")
     if not pattern.match(name) or name in named_constants or name in keywords:
         return False
     return True
@@ -73,6 +73,8 @@ def equations_lexer(equations):
         lines = split("[\n;]", equations)
         lines = (lambda x: [i.strip() for i in x])(lines)
         for line in lines:
+            if not line:
+                continue
             try:
                 eq, flag = split("[:]", line, maxsplit=1)
             except ValueError:
@@ -98,6 +100,9 @@ def equations_lexer(equations):
                         "is_ode": is_ode})
     return eqs
 
+def get_equation_variables(equations):
+    equations = equations_lexer(equations)
+    return variable_lexer(equations)
 
 def variable_lexer(equations):
     variables = []
