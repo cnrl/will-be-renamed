@@ -16,9 +16,9 @@ struct Population{{ population.id }} {
     std::vector<int> spiked;
 
     {% for var in population.neuron.parameters.vars %}
-    {% if var.scope == 'global'%}
+    {% if var.scope == 'population'%}
     double {{ var.name }};
-    {% elif var.scope == 'local'%}
+    {% elif var.scope == 'self'%}
     std::vector< double > {{ var.name }};
     {% endif %}
     {% endfor %}
@@ -38,11 +38,11 @@ struct Population{{ population.id }} {
     };
 
     {% for var in population.neuron.parameters.vars %}
-    {% if var.scope == 'global'%}
+    {% if var.scope == 'population'%}
     double get_{{ var.name }}() { return {{ var.name }}; }
     void set_{{ var.name }}(double _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
 
-    {% elif var.scope == 'local'%}
+    {% elif var.scope == 'self'%}
     std::vector< double > get_{{ var.name }}() { return {{ var.name }}; }
     double get_single_{{ var.name }}(int rank) { return {{ var.name }}[rank]; }
     void set_{{ var.name }}(std::vector< double > _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
@@ -69,9 +69,9 @@ struct Population{{ population.id }} {
     void init_population() {
 
         {% for var in population.neuron.parameters.vars %}
-        {% if var.scope == 'global'%}
+        {% if var.scope == 'population'%}
         {{ var.name }} = 0.0;
-        {% elif var.scope == 'local'%}
+        {% elif var.scope == 'self'%}
         {{ var.name }} = std::vector<double>(size, 0.0);
         {% endif %}
         {% endfor %}

@@ -22,10 +22,10 @@ cdef extern from "core.h":
         void set_size(int)
 
         {% for var in population.neuron.parameters.vars %}
-        {% if var.scope == 'global' %}
+        {% if var.scope == 'population' %}
         double  get_{{ var.name }}()
         void set_{{ var.name }}(double)
-        {% elif var.scope == 'local' %}
+        {% elif var.scope == 'self' %}
         vector[double] get_{{ var.name }}()
         double get_single_{{ var.name }}(int)
         void set_{{ var.name }}(vector[double])
@@ -85,13 +85,13 @@ cdef class Population{{ population.id }}Wrapper:
             return population{{ population.id }}.get_size()
 
     {% for var in population.neuron.parameters.vars %}
-    {% if var.scope == 'global' %}
+    {% if var.scope == 'population' %}
     cpdef double get_{{ var.name }}(self):
         return population{{ population.id }}.get_{{ var.name }}()
 
     cpdef set_{{ var.name }}(self, double value):
         population{{ population.id }}.set_{{ var.name }}(value)
-    {% elif var.scope == 'local' %}
+    {% elif var.scope == 'self' %}
     cpdef np.ndarray get_{{ var.name }}(self):
         return np.array(population{{ population.id }}.get_{{ var.name }}())
 
