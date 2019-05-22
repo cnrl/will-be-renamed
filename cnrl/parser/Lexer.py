@@ -25,7 +25,7 @@ def is_scope_valid(scope):
 
 
 def parameters_lexer(parameters):
-    params = []
+    params = {}
     if parameters != "":
         lines = split("[\n;]", parameters)
         lines = (lambda x: [i.strip() for i in x])(lines)
@@ -51,10 +51,13 @@ def parameters_lexer(parameters):
                     scope = "self"
 
             value = float(value)
-            params.append({"name": name,
-                           "init": value,
-                           "scope": scope,
-                           "ctype": "double"})
+            if name in params:
+                raise Exception("{} is already defined".format(name))
+            params[name] = {
+                "init": value,
+                "scope": scope,
+                "ctype": "double"
+            }
 
     return params
 
@@ -96,7 +99,7 @@ def equations_lexer(equations):
 
 
 def variable_lexer(equations):
-    variables = []
+    variables = {}
     for eq in equations:
         lhs = str(eq["lhs_parsed"])
         print(lhs)
@@ -124,11 +127,12 @@ def variable_lexer(equations):
 
         rhs = eq["rhs_parsed"]
         val = float(val)
-        variables.append({"name": name,
-                          "init": val,
-                          "scope": "self",
-                          "ctype": "double",
-                          "rhs": rhs})
+        variables[name] = {
+              "init": val,
+              "scope": "self",
+              "ctype": "double",
+              "rhs": rhs
+        }
     return variables
 
 

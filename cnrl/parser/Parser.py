@@ -51,8 +51,10 @@ def parse_mathematical_expr(expr):
     return sympify(expr, evaluate=False)
 
 
-def check_variable_definition(equations, parameters):
+def check_variable_definition(equations, parameters, builtins):
+    # TODO check pre.variable and post.variable differently and right
+    builtins = {Symbol(builtin_symbol) for builtin_symbol in builtins}
     for eq in equations.equations_list:
-        for sym in eq["rhs_parsed"].args + eq["lhs_parsed"].args:
-            if isinstance(sym, Symbol) and str(sym) not in parameters:
+        for sym in (eq["rhs_parsed"].atoms() or eq["lhs_parsed"].atoms()) - set(builtins):
+            if isinstance(sym, Symbol) and str(sym) not in parameters and not str(sym).startswith('_'):
                 raise ParserException("{} is not defined in this scope.".format(sym))

@@ -1,3 +1,4 @@
+from cnrl.globals import FORBIDDEN_POPULATION_VAR_NAMES
 from cnrl.models.parameters import NeuronParameters
 from cnrl.models.equations import NeuronEquations
 from cnrl.parser.Parser import check_variable_definition
@@ -22,7 +23,7 @@ class Neuron:
         self.spike = NeuronEquations(spike, 'spike') if spike is not None else None
         self.reset = NeuronEquations(reset, 'reset') if reset is not None else None
 
-        check_variable_definition(self.equations, self.parameters.var_set)
+        check_variable_definition(self.equations, self.parameters.vars, FORBIDDEN_POPULATION_VAR_NAMES)
 
     def __repr__(self):
         return self.__class__.__name__ + """(

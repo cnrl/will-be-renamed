@@ -1,8 +1,9 @@
 import os
 from jinja2 import FileSystemLoader, Environment
+from sympy import Symbol
 
 from cnrl.exceptions import IllegalStateException
-
+from cnrl.globals import SUBSCRIPTABLE_VAR_NAMES
 
 # generates cpp code, compiles it and returns dynamically loaded module
 def generate(net_id, populations, connections):
@@ -58,12 +59,50 @@ def _generate_core(base_path, template_env, populations, connections):
 
         file.close()
 
+def _is_variable_population_dependent(variable):
+    return str(variable).startswith('_')
+
+def _generate_population_dependent_variable_codes(variable):
+    for population in ['pre', 'post']:
+        population_indicator = '_{}_'.format(population)
+        if population_indicator in variable:
+            population_dependent_variable = variable.split(population)[-1]
+            return "population{{ connection.{}.id }}.{}[rank_{}]".format(
+                population,
+                population_dependent_variable,
+                population
+            )
+
+def _generate_variable_equation_codes(equations, variables):
+    codes = []
+    for equation in equations:
+        lhs = equation['lhs_parsed']
+        rhs = equation['rhs_parsed']
+        for rhs_var in rhs.atoms():
+            print(rhs, type(rhs))
+            if _is_variable_population_dependent(rhs_var):
+                sym = Symbol(_generate_population_dependent_variable_codes(str(rhs_var)))
+                rhs = rhs.subs(rhs_var, sym)
+            elif isinstance(rhs_var, Symbol) and \
+                    (str(rhs_var) in SUBSCRIPTABLE_VAR_NAMES or
+                             variables[str(rhs_var)]['scope'] == 'self'):
+                sym = Symbol(str(rhs_var) + '[i]')
+                print(str(rhs_var) , sym, rhs)
+                rhs = rhs.subs(rhs_var , sym)
+
+        codes.append((str(lhs), rhs))
+
+    return codes
 
 def _generate_populations(base_path, template_env, populations):
     template = template_env.get_template('population.hpp')
 
     for population in populations:
-        rendered = template.render(population=population)
+        codes = _generate_variable_equation_codes(
+            population.neuron.equations.equations_list,
+            population.neuron.parameters.vars
+        )
+        rendered = template.render(population=population, codes=codes)
 
         full_path = os.path.join(base_path, 'population{}.hpp'.format(population.id))
         file = open(full_path, "w+")
@@ -77,7 +116,11 @@ def _generate_connections(base_path, template_env, connections):
     template = template_env.get_template('connection.hpp')
 
     for connection in connections:
-        rendered = template.render(connection=connection)
+        codes = _generate_variable_equation_codes(
+            connection.synapse.equations.equations_list,
+            connection.synapse.parameters.vars
+        )
+        rendered = template.render(connection=connection, codes=codes)
         full_path = os.path.join(base_path, 'connection{}.hpp'.format(connection.id))
 
         file = open(full_path, "w+")

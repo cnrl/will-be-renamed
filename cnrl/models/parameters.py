@@ -1,5 +1,3 @@
-from sympy.core.symbol import Symbol
-
 from cnrl.exceptions import IllegalArgumentException, ParserException
 from cnrl.parser.Lexer import parameters_lexer, variable_lexer
 
@@ -10,14 +8,8 @@ class Parameters:
         self.equations = equations_list
         self._check_args()
 
-        variables = parameters_lexer(definitions) + variable_lexer(equations_list)
-        self.var_set = set()
-        for var in variables:
-            if var['name'] not in self.var_set:
-                self.var_set.add(var['name'])
-            else:
-                raise ParserException("parameter {} is already defined in this scope".format(var['name']))
-        self.vars = variables
+        self.vars = parameters_lexer(definitions)
+        self.vars.update(variable_lexer(equations_list))
 
     def _check_args(self):
         if not isinstance(self.definitions, str):
@@ -26,11 +18,6 @@ class Parameters:
     def __repr__(self):
         return self.__class__.__name__ + "(\n\tdefinitions:" + self.definitions + ")"
 
-    def _replace_globals(self):
-        for eq in self.equations:
-            for sym in eq['rhs_parsed'].args:
-                if type(sym) is Symbol:
-                    pass  # TODO n^3 !!!!
 
 
 class NeuronParameters(Parameters):

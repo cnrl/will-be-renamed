@@ -1,6 +1,7 @@
+from cnrl.globals import FORBIDDEN_CONNECTION_VAR_NAMES
 from cnrl.models.parameters import SynapseParameters
 from cnrl.models.equations import SynapseEquations
-
+from cnrl.parser.Parser import check_variable_definition
 
 class Synapse:
     """
@@ -16,6 +17,7 @@ class Synapse:
         """
         self.equations = SynapseEquations(equations)
         self.parameters = SynapseParameters(parameters, self.equations.equations_list)
+        check_variable_definition(self.equations, self.parameters.vars, FORBIDDEN_CONNECTION_VAR_NAMES)
 
     def __repr__(self):
         return self.__class__.__name__ + """(

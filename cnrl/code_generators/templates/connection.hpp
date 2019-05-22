@@ -13,17 +13,17 @@ struct Connection{{ connection.id }} {
     std::map< int, std::vector< std::pair<int, int> > > inv_pre_rank ;
     std::vector< int > inv_post_rank ;
 
-    {% for var in connection.synapse.parameters.vars %}
-    {% if var.name != 'w' %}
-    std::vector< std::vector<double > > {{ var.name }};
+    {% for var_name, var in connection.synapse.parameters.vars.items() %}
+    {% if var_name != 'w' %}
+    std::vector< std::vector<double > > {{ var_name }};
     {% endif %}
     {% endfor %}
 
     void init_connection() {
         inverse_connectivity_matrix();
 
-        {% for var in connection.synapse.parameters.vars %}
-        {{ var.name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
+        {% for var_name, var in connection.synapse.parameters.vars.items() %}
+        {{ var_name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
         {% endfor %}
     }
 
@@ -63,13 +63,17 @@ struct Connection{{ connection.id }} {
 
     void update_synapse() {
         for(int i = 0; i < post_rank.size(); i++) {
-            int rk_post = post_rank[i];
+            int rank_post = post_rank[i];
 
             for(int j = 0; j < pre_rank[i].size(); j++) {
-                int rk_pre = pre_rank[i][j];
-
-                double _w = -population{{ connection.post.id }}.r[rk_post] * (population{{ connection.post.id }}.r[rk_post] * w[i][j] - population{{ connection.pre.id }}.r[rk_pre]) / 5000;
-
+                int rank_pre = pre_rank[i][j];
+                {% for var, code in codes%}
+                double _{{ var }} = {{ code }};
+                {% endfor %}
+                //double _w = -population{{ connection.post.id }}.r[rank_post] * (population{{ connection.post.id }}.r[rank_post] * w[i][j] - population{{ connection.pre.id }}.r[rank_pre]) / 5000;
+                {% for var, _ in codes %}
+                {{ var }}[i][j] += _{{ var }};
+                {% endfor %}
                 w[i][j] += _w ;
             }
         }
@@ -127,30 +131,30 @@ struct Connection{{ connection.id }} {
         w[rank_post][rank_pre] = _w;
     }
 
-    {% for var in connection.synapse.parameters.vars %}
-    {% if var.name != 'w' %}
-    std::vector<std::vector< double > > get_{{ var.name }}() {
-        return {{ var.name }};
+    {% for var_name, var in connection.synapse.parameters.vars.items() %}
+    {% if var_name != 'w' %}
+    std::vector<std::vector< double > > get_{{ var_name }}() {
+        return {{ var_name }};
     }
 
-    std::vector<double> get_dendrite_{{ var.name }}(int rank) {
-        return {{ var.name }}[rank];
+    std::vector<double> get_dendrite_{{ var_name }}(int rank) {
+        return {{ var_name }}[rank];
     }
 
-    double get_synapse_{{ var.name }}(int rank_post, int rank_pre) {
-        return {{ var.name }}[rank_post][rank_pre];
+    double get_synapse_{{ var_name }}(int rank_post, int rank_pre) {
+        return {{ var_name }}[rank_post][rank_pre];
     }
 
-    void set_{{ var.name }}(std::vector<std::vector< double > >value) {
-        {{ var.name }} = value;
+    void set_{{ var_name }}(std::vector<std::vector< double > >value) {
+        {{ var_name }} = value;
     }
 
-    void set_dendrite_{{ var.name }}(int rank, std::vector<double> value) {
-        {{ var.name }}[rank] = value;
+    void set_dendrite_{{ var_name }}(int rank, std::vector<double> value) {
+        {{ var_name }}[rank] = value;
     }
 
-    void set_synapse_{{ var.name }}(int rank_post, int rank_pre, double value) {
-        {{ var.name }}[rank_post][rank_pre] = value;
+    void set_synapse_{{ var_name }}(int rank_post, int rank_pre, double value) {
+        {{ var_name }}[rank_post][rank_pre] = value;
     }
     {% endif %}
     {% endfor %}
