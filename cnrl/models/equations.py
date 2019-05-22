@@ -1,6 +1,5 @@
 from cnrl.parser.Parser import parse_equations, parse_conditions, parse_reset
-from cnrl.exceptions import IllegalArgumentException, ParserException
-from sympy.core.symbol import Symbol
+from cnrl.exceptions import IllegalArgumentException
 
 
 class Equations:
@@ -17,7 +16,7 @@ class Equations:
 
 
 class NeuronEquations(Equations):
-    def __init__(self, equations, equation_type, parameters_list):
+    def __init__(self, equations, equation_type):
         super().__init__(equations)
 
         if equation_type == 'simple':
@@ -26,15 +25,6 @@ class NeuronEquations(Equations):
             self.equations_list = parse_conditions(equations)
         elif equation_type == 'reset':
             self.equations_list = parse_reset(equations)
-
-        for eq in self.equations_list:
-            for sym in eq["rhs_parsed"].args:
-                if type(sym) is Symbol and str(sym) not in parameters_list.var_set:
-                    raise ParserException("{} is not defined in this scope.".format(sym))
-            if equation_type != 'simple':
-                for sym in eq["lhs_parsed"].args:
-                    if type(sym) is Symbol and str(sym) not in parameters_list.var_set:
-                        raise ParserException("{} is not defined in this scope.".format(sym))
 
 
 class SynapseEquations(Equations):

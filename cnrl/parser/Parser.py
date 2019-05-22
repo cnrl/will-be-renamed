@@ -1,4 +1,5 @@
 from sympy import sympify, Eq
+from sympy.core.symbol import Symbol
 
 from cnrl.parser.Lexer import parameters_lexer, equations_lexer, conditional_equations_lexer
 from cnrl.exceptions import ParserException
@@ -44,3 +45,10 @@ def parse_conditions(conditions):
 
 def parse_mathematical_expr(expr):
     return sympify(expr, evaluate=False)
+
+
+def check_variable_definition(equations, parameters):
+    for eq in equations.equations_list:
+        for sym in eq["rhs_parsed"].args + eq["lhs_parsed"]:
+            if isinstance(sym, Symbol) and str(sym) not in parameters:
+                raise ParserException("{} is not defined in this scope.".format(sym))

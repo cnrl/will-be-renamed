@@ -1,5 +1,6 @@
 from cnrl.models.parameters import NeuronParameters
 from cnrl.models.equations import NeuronEquations
+from cnrl.parser.Parser import check_variable_definition
 
 
 class Neuron:
@@ -18,8 +19,10 @@ class Neuron:
         """
         self.equations = NeuronEquations(equations, 'simple')
         self.parameters = NeuronParameters(parameters, self.equations.equations_list)
-        self.spike = NeuronEquations(spike, 'spike', self.parameters) if spike is not None else None
-        self.reset = NeuronEquations(reset, 'reset', self.parameters) if reset is not None else None
+        self.spike = NeuronEquations(spike, 'spike') if spike is not None else None
+        self.reset = NeuronEquations(reset, 'reset') if reset is not None else None
+
+        check_variable_definition(self.equations, self.parameters.var_set)
 
     def __repr__(self):
         return self.__class__.__name__ + """(
