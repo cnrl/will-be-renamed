@@ -1,6 +1,7 @@
 from sympy import sympify, Eq
 
-from cnrl.parser.Lexer import parameters_lexer, equations_lexer, variable_lexer, conditional_equations_lexer
+from cnrl.parser.Lexer import parameters_lexer, equations_lexer, conditional_equations_lexer
+from cnrl.exceptions import ParserException
 
 
 def parse_parameters(parameters):
@@ -15,8 +16,11 @@ def parse_equations(equations):
         rhs = rhs.replace("post.", "_post_")
         lhs = eq["lhs"].replace("pre.", "_pre_")
         lhs = lhs.replace("post.", "_post_")
-        lhs = sympify(lhs, evaluate=False)
-        rhs = sympify(rhs, evaluate=False)
+        try:
+            lhs = sympify(lhs, evaluate=False)
+            rhs = sympify(rhs, evaluate=False)
+        except Exception:
+            raise ParserException("Invalid syntax for equation")
         constraints = eq["constraint"]  # TODO check constraint validity(syntax)
         eqs.append({"lhs_parsed": lhs,
                     "rhs_parsed": rhs,
@@ -30,7 +34,7 @@ def parse_reset(equations):
     eqs, var = parse_equations(equations)
     for eq in eqs:
         if eq["is_ode"]:
-            raise Exception("Reset equation can not be an ODE")
+            raise ParserException("Reset equation can not be an ODE")
     return eqs, var
 
 

@@ -1,6 +1,7 @@
 from re import split, compile, findall
 
 from cnrl.globals import named_constants, keywords
+from cnrl.exceptions import ParserException
 
 
 def is_name_valid(name):
@@ -28,29 +29,24 @@ def parameters_lexer(parameters):
     if parameters != "":
         lines = split("[\n;]", parameters)
         lines = (lambda x: [i.strip() for i in x])(lines)
-        # TODO Handle syntax error(apply a regular expression)
         for line in lines:
             if not line:
                 continue
             param_pieces = split("[=:]", line)
             if len(param_pieces) < 2 or len(param_pieces) > 3:
-                # TODO generate custom exception
-                raise Exception("Invalid syntax for parameters argument")
+                raise ParserException("Invalid syntax for parameters argument")
             else:
                 name = param_pieces[0].strip()
                 if not is_name_valid:
-                    # TODO generate custom exception
-                    raise Exception("Invalid name for a parameter")
+                    raise ParserException("Invalid name for a parameter")
                 value = param_pieces[1].strip()
                 if not is_value_valid(value):
-                    # TODO generate custom exception
-                    raise Exception("Invalid value for a parameter")
+                    raise ParserException("Invalid value for a parameter")
 
                 if len(param_pieces) > 2:
                     scope = param_pieces[2].strip()
                     if not is_scope_valid(scope):
-                        # TODO generate custom exception
-                        raise Exception("Invalid flag for a parameter")
+                        raise ParserException("Invalid flag for a parameter")
                 else:
                     scope = "self"
 
@@ -84,14 +80,12 @@ def equations_lexer(equations):
             try:
                 lhs, rhs = (lambda x: [i.strip() for i in x])(split("[+\-/*%]?=", eq))
                 if rhs is "":
-                    # TODO generate custom exception
-                    raise Exception("Invalid syntax for an equation")
+                    raise ParserException("Invalid syntax for an equation")
                 op = split("=", eq)[0][-1]
                 if op in ["+", "-", "*", "/", "%"]:
                     rhs = lhs + op + "(" + rhs + ")"
             except ValueError:
-                # TODO generate custom exception
-                raise Exception("Invalid syntax for an equation")
+                raise ParserException("Invalid syntax for an equation")
 
             is_ode = len(ode_var_name(lhs)) == 1
             eqs.append({"lhs": lhs,
@@ -113,22 +107,18 @@ def variable_lexer(equations):
             if len(name) == 1:
                 name = name[0].strip()
             else:
-                # TODO generate custom exception
-                raise Exception("Invalid syntax for an equation")
+                raise ParserException("Invalid syntax for an equation")
         constraint = eq["constraints"]
         if constraint is not "":
             flag = (lambda x: [i.strip() for i in x])(split("=", constraint, maxsplit=1))
             if flag[0] != "init":
-                # TODO generate custom exception
-                raise Exception("Invalid constraint for an equation")
+                raise ParserException("Invalid constraint for an equation")
             try:
                 val = flag[1]
                 if not is_value_valid(val):
-                    # TODO generate custom exception
-                    raise Exception("Invalid constraint for an equation")
+                    raise ParserException("Invalid constraint for an equation")
             except IndexError:
-                # TODO generate custom exception
-                raise Exception("Invalid constraint for an equation")
+                raise ParserException("Invalid constraint for an equation")
         else:
             val = "0.0"
 
@@ -143,26 +133,22 @@ def variable_lexer(equations):
 
 
 def conditional_equations_lexer(equations):
-    # TODO extend this function more complex conditional equations
     eqs = []
     eq = equations
     if equations != "":
         try:
             lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\>\<]=?", eq))
             if rhs is "":
-                # TODO generate custom exception
-                raise Exception("Invalid syntax for an equation")
+                raise ("Invalid syntax for an equation")
             op = findall("[\>\<]=?", eq)
         except ValueError:
             try:
                 lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\!=]=", eq))
                 if rhs is "":
-                    # TODO generate custom exception
-                    raise Exception("Invalid syntax for an equation")
+                    raise ParserException("Invalid syntax for an equation")
                 op = findall("[\!=]=?", eq)
             except ValueError:
-                # TODO generate custom exception
-                raise Exception("Invalid syntax for an equation")
+                raise ParserException("Invalid syntax for an equation")
 
         eqs.append({"lhs": lhs,
                     "rhs": rhs,
