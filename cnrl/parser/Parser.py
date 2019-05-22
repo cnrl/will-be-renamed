@@ -1,7 +1,7 @@
 from sympy import sympify, Eq
 from sympy.core.symbol import Symbol
 
-from cnrl.parser.Lexer import parameters_lexer, equations_lexer, conditional_equations_lexer
+from cnrl.parser.Lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
 from cnrl.exceptions import ParserException
 
 
@@ -17,8 +17,12 @@ def parse_equations(equations):
         rhs = rhs.replace("post.", "_post_")
         lhs = eq["lhs"].replace("pre.", "_pre_")
         lhs = lhs.replace("post.", "_post_")
+
+        if eq['is_ode']:
+            lhs = Symbol(ode_var_name(lhs)[0])
         try:
-            lhs = sympify(lhs, evaluate=False)
+            if not eq['is_ode']:
+                lhs = sympify(lhs, evaluate=False)
             rhs = sympify(rhs, evaluate=False)
         except Exception:
             raise ParserException("Invalid syntax for equation")
@@ -32,11 +36,11 @@ def parse_equations(equations):
 
 
 def parse_reset(equations):
-    eqs, var = parse_equations(equations)
+    eqs = parse_equations(equations)
     for eq in eqs:
         if eq["is_ode"]:
             raise ParserException("Reset equation can not be an ODE")
-    return eqs, var
+    return eqs
 
 
 def parse_conditions(conditions):
@@ -49,6 +53,6 @@ def parse_mathematical_expr(expr):
 
 def check_variable_definition(equations, parameters):
     for eq in equations.equations_list:
-        for sym in eq["rhs_parsed"].args + eq["lhs_parsed"]:
+        for sym in eq["rhs_parsed"].args + eq["lhs_parsed"].args:
             if isinstance(sym, Symbol) and str(sym) not in parameters:
                 raise ParserException("{} is not defined in this scope.".format(sym))

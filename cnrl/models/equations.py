@@ -28,4 +28,6 @@ class NeuronEquations(Equations):
 
 
 class SynapseEquations(Equations):
-    pass
+    def __init__(self, equations):
+        super().__init__(equations)
+        self.equations_list = parse_equations(equations)
