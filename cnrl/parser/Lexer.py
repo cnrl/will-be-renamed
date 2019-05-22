@@ -4,7 +4,7 @@ from cnrl.globals import named_constants, keywords
 
 
 def is_name_valid(name):
-    pattern = compile("^[a-zA-Z_][a-zA-Z0-9_]*$")
+    pattern = compile("^[a-zA-Z][a-zA-Z0-9_]*$")
     if not pattern.match(name) or name in named_constants or name in keywords:
         return False
     return True
