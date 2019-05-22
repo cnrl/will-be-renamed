@@ -21,7 +21,7 @@ def parse_equations(equations):
             rhs = sympify(rhs, evaluate=False)
         except Exception:
             raise ParserException("Invalid syntax for equation")
-        constraints = eq["constraint"]  # TODO check constraint validity(syntax)
+        constraints = eq["constraint"]
         eqs.append({"lhs_parsed": lhs,
                     "rhs_parsed": rhs,
                     "is_ode": eq["is_ode"],

@@ -16,10 +16,10 @@ class Neuron:
             > spike: Spike emission condition.
             > reset: Changes to the variables after a spike.
         """
-        self.equations = NeuronEquations(equations)
+        self.equations = NeuronEquations(equations, 'simple')
         self.parameters = NeuronParameters(parameters, self.equations.equations_list)
-        self.spike = None #NeuronEquations(spike) if spike is not None else None
-        self.reset = None #NeuronEquations(reset) if reset is not None else None
+        self.spike = NeuronEquations(spike, 'spike', self.parameters) if spike is not None else None
+        self.reset = NeuronEquations(reset, 'reset', self.parameters) if reset is not None else None
 
     def __repr__(self):
         return self.__class__.__name__ + """(

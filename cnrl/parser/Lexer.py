@@ -139,7 +139,7 @@ def conditional_equations_lexer(equations):
         try:
             lhs, rhs = (lambda x: [i.strip() for i in x])(split("[\>\<]=?", eq))
             if rhs is "":
-                raise ("Invalid syntax for an equation")
+                raise ParserException("Invalid syntax for an equation")
             op = findall("[\>\<]=?", eq)
         except ValueError:
             try:
