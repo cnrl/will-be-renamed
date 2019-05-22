@@ -9,7 +9,6 @@ class Equations:
 
         self.equations_list = parse_equations(equations)
 
-
     def _check_args(self):
         if not isinstance(self.equations, str):
             raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
