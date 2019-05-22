@@ -11,8 +11,12 @@ def parse_equations(equations):
     equations = equations_lexer(equations)
     eqs = []
     for eq in equations:
-        lhs = sympify(eq["lhs"], evaluate=False)
-        rhs = sympify(eq["rhs"], evaluate=False)
+        rhs = eq["rhs"].replace("pre.", "_pre_")
+        rhs = rhs.replace("post.", "_post_")
+        lhs = eq["lhs"].replace("pre.", "_pre_")
+        lhs = lhs.replace("post.", "_post_")
+        lhs = sympify(lhs, evaluate=False)
+        rhs = sympify(rhs, evaluate=False)
         constraints = eq["constraint"]  # TODO check constraint validity(syntax)
         eqs.append({"lhs_parsed": lhs,
                     "rhs_parsed": rhs,
