@@ -5,6 +5,12 @@ from cnrl.exceptions import ParserException
 
 
 def is_name_valid(name):
+    """
+    Check if a user-defined name is valid. name can start with a letter and can only contain
+    alphnumerals and _.
+    :param name: str
+    :return: bool
+    """
     pattern = compile("^[a-zA-Z][a-zA-Z0-9_]*$")
     if not pattern.match(name) or name in named_constants or name in keywords:
         return False
@@ -12,6 +18,11 @@ def is_name_valid(name):
 
 
 def is_value_valid(value):
+    """
+    Check if the syntax given for the value of a parameter or variable is correct.
+    :param value: str
+    :return: bool
+    """
     numerical_pattern = compile("[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?")
     if not numerical_pattern.match(value) and value not in named_constants:
         return False
@@ -19,12 +30,30 @@ def is_value_valid(value):
 
 
 def is_scope_valid(scope):
+    """
+    Check if the syntax for scope/constraint of a parameter is valid or not.
+    :param scope: str
+    :return: bool
+    """
     if scope not in ["population", "connection", "self", "global"]:
         return False
     return True
 
 
 def parameters_lexer(parameters):
+    """
+    Lex the input string for parameters argument in a neuron or synapse. It returns
+    a dictionary with name of parameter as the keys. The values are dictionaries with scope,
+    init, and ctype as keys. If no scope and type is given as constraint to parameter, self
+    and double will be placed, respectively.
+    Example:
+    parameters=\"\"\"
+        x = 0.0 : population
+                \"\"\"
+    { 'x': {'scope': 'population', 'ctype': 'double', 'init': '0.0'}}
+    :param parameters: str
+    :return: dict
+    """
     params = {}
     if parameters != "":
         lines = split("[\n;]", parameters)
@@ -63,10 +92,32 @@ def parameters_lexer(parameters):
 
 
 def ode_var_name(lhs):
+    """
+    Extracts gradient variable in an ODE.
+    :param lhs: str
+    :return: list
+    """
     return findall("d([\w]+)/dt", lhs)
 
 
 def equations_lexer(equations):
+    """
+    Lex the input string for equations argument in a neuron or synapse. The equation is
+    either a normal equation or an ODE. For a normal equation, the left hand side should
+    only contain the variable whose values will change. For an ODE, the left hand side
+    should be the derivative expression d[var]/dt where [var] is the variable whose values
+    will change. This function will return a list of dictionaries. Each dictionary contains
+    lhs, rhs, constraint, and is_ode as its keys.
+    Example:
+    equations=\"\"\"
+        g_exc += x + 3
+        dv/dt = 5*x + 4 : init = 0.1
+            \"\"\"
+    [{"lhs": "g_exc", "rhs": "g_exc + (x + 3)", "constraint": "", "is_ode": False},
+     {"lhs": "dv/dt", "rhs": "5*x + 4", "constraint": "init = 0.1", "is_ode": True}]
+    :param equations: str
+    :return: list
+    """
     eqs = []
     if equations != "":
         lines = split("[\n;]", equations)
@@ -99,6 +150,13 @@ def equations_lexer(equations):
 
 
 def variable_lexer(equations):
+    """
+    Extract variable name from an equation. It returns a dictionary similar to
+    what did the parameter_lexer. It has one more key in each value of the dict
+    which is rhs of the equation in which the variable is defined.
+    :param equations: str
+    :return: dict
+    """
     variables = {}
     for eq in equations:
         lhs = str(eq["lhs_parsed"])
@@ -137,6 +195,14 @@ def variable_lexer(equations):
 
 
 def conditional_equations_lexer(equations):
+    """
+    Lex the input string for spike argument in a neuron. It follows the pattern
+    lhs op rhs
+    where lhs is a variable, op is either >, <, >=, <=, !=, or ==, and rhs is a
+    value. It returns a list of dictionaries with lhs, rhs, and op as the keys.
+    :param equations: str
+    :return: list
+    """
     eqs = []
     eq = equations
     if equations != "":
