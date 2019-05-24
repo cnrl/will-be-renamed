@@ -52,3 +52,9 @@ class Population:
 
     def __len__(self):
         return self.size
+
+    def __getattr__(self, item):
+        if self.wrapper is None or not hasattr(self.wrapper, 'get_{}'.format(item)):
+            raise AttributeError('object {} has no attribute \'{}\''.format(self.__class__.__name, item))
+
+        return getattr(self.wrapper, 'get_{}'.format(item))()

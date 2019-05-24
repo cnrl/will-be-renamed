@@ -46,3 +46,9 @@ class Connection:
         """ + str(self.post) + """
         Synapse:
         """ + str(self.synapse) + ")"
+
+    def __getattr__(self, item):
+        if self.wrapper is None or not hasattr(self.wrapper, 'get_{}'.format(item)):
+            raise AttributeError('object {} has no attribute \'{}\''.format(self.__class__.__name, item))
+
+        return getattr(self.wrapper, 'get_{}'.format(item))()
