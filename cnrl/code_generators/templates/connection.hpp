@@ -17,6 +17,16 @@ struct Connection{{ connection.id }} {
     {% endfor %}
 
     void init_connection() {
+        for (int rank = 0;rank < population{{ connection.post.id }}.size; rank++)
+            post_rank.push_back(rank);
+
+        for (int post_rank_idx = 0;post_rank_idx < population{{ connection.post.id }}.size; post_rank_idx++) {
+            pre_rank.push_back(std::vector<int>());
+
+            for (int pre_rank_idx = 0;pre_rank_idx < population{{ connection.pre.id }}.size; pre_rank_idx++)
+                pre_rank.back().push_back(pre_rank_idx);
+        }
+
         inverse_connectivity_matrix();
 
         {% for var_name, var in connection.synapse.parameters.vars.items() %}
