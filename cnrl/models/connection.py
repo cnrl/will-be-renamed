@@ -23,6 +23,8 @@ class Connection:
 
         self._check_args()
 
+        self.wrapper = None
+
         self.id = Connection._instance_count
         Connection._instance_count += 1
 
@@ -44,3 +46,11 @@ class Connection:
         """ + str(self.post) + """
         Synapse:
         """ + str(self.synapse) + ")"
+
+    def __getattr__(self, item):
+        if self.wrapper is None or \
+                (not hasattr(self.wrapper, 'get_{}'.format(item)) and not hasattr(self.wrapper, item)):
+            raise AttributeError('object {} has no attribute \'{}\''.format(self.__class__.__name__, item))
+        if item.startswith('set'):
+            return getattr(self.wrapper, item)
+        return getattr(self.wrapper, 'get_{}'.format(item))()

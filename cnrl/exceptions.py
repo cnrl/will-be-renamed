@@ -6,3 +6,8 @@ class IllegalArgumentException(Exception):
 class IllegalStateException(Exception):
     def __init__(self, message):
         self.message = message
+
+
+class ParserException(Exception):
+    def __init__(self, message):
+        self.message = message

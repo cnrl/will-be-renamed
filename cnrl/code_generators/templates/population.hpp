@@ -15,17 +15,22 @@ struct Population{{ population.id }} {
     std::vector<long int> last_spike;
     std::vector<int> spiked;
 
-    {% for var in population.neuron.parameters.vars %}
+    {% for var_name, var in population.neuron.parameters.vars.items() %}
     {% if var.scope == 'population'%}
-    double {{ var.name }};
+    double {{ var_name }};
     {% elif var.scope == 'self'%}
-    std::vector< double > {{ var.name }};
+    std::vector< double > {{ var_name }};
     {% endif %}
     {% endfor %}
 
-    std::vector< double > v;
-    std::vector< double > r;
-    std::vector< double > g_exc;
+    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% if var.scope == 'population'%}
+    std::vector<double> {{ var_name }}_history;
+    {% elif var.scope == 'self'%}
+    std::vector<std::vector< double > >{{ var_name }}_history;
+    {% endif %}
+
+    {% endfor %}
 
     std::vector< std::queue<long int> > _spike_history;
     long int _mean_fr_window;
@@ -37,48 +42,40 @@ struct Population{{ population.id }} {
         }
     };
 
-    {% for var in population.neuron.parameters.vars %}
+    {% for var_name, var in population.neuron.parameters.vars.items() %}
     {% if var.scope == 'population'%}
-    double get_{{ var.name }}() { return {{ var.name }}; }
-    void set_{{ var.name }}(double _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
+    double get_{{ var_name }}() { return {{ var_name }}; }
+    void set_{{ var_name }}(double _{{ var_name }}) { {{ var_name }} = _{{ var_name }}; }
 
     {% elif var.scope == 'self'%}
-    std::vector< double > get_{{ var.name }}() { return {{ var.name }}; }
-    double get_single_{{ var.name }}(int rank) { return {{ var.name }}[rank]; }
-    void set_{{ var.name }}(std::vector< double > _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
-    void set_single_{{ var.name }}(int rank, double _{{ var.name }}) { {{ var.name }}[rank] = _{{ var.name }}; }
+    std::vector< double > get_{{ var_name }}() { return {{ var_name }}; }
+    double get_single_{{ var_name }}(int rank) { return {{ var_name }}[rank]; }
+    void set_{{ var_name }}(std::vector< double > _{{ var_name }}) { {{ var_name }} = _{{ var_name }}; }
+    void set_single_{{ var_name }}(int rank, double _{{ var_name }}) { {{ var_name }}[rank] = _{{ var_name }}; }
 
     {% endif %}
     {% endfor %}
 
-    std::vector< double > get_v() { return v; }
-    double get_single_v(int rank) { return v[rank]; }
-    void set_v(std::vector< double > _v) { v = _v; }
-    void set_single_v(int rank, double _v) { v[rank] = _v; }
+  {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% if var.scope == 'population'%}
+    std::vector<double> get_{{ var_name }}_history() { return {{ var_name }}_history; }
 
-    std::vector< double > get_r() { return r; }
-    double get_single_r(int rank) { return r[rank]; }
-    void set_r(std::vector< double > _r) { r = _r; }
-    void set_single_r(int rank, double _r) { r[rank] = _r; }
+    {% elif var.scope == 'self'%}
+    std::vector< std::vector<double> > get_{{ var_name }}_history() { return {{ var_name }}_history; }
 
-    std::vector< double > get_g_exc() { return g_exc; }
-    double get_single_g_exc(int rank) { return g_exc[rank]; }
-    void set_g_exc(std::vector< double > _g_exec) { g_exc = _g_exec; }
-    void set_single_g_exc(int rank, double _g_exec) { g_exc[rank] = _g_exec; }
+    {% endif %}
+    {% endfor %}
+
 
     void init_population() {
 
-        {% for var in population.neuron.parameters.vars %}
+        {% for var_name, var in population.neuron.parameters.vars.items() %}
         {% if var.scope == 'population'%}
-        {{ var.name }} = 0.0;
+        {{ var_name }} = {{ var.init }};
         {% elif var.scope == 'self'%}
-        {{ var.name }} = std::vector<double>(size, 0.0);
+        {{ var_name }} = std::vector<double>(size, {{ var.init }});
         {% endif %}
         {% endfor %}
-
-        v = std::vector<double>(size, 0.0);
-        r = std::vector<double>(size, 0.0);
-        g_exc = std::vector<double>(size, 0.0);
 
         spiked = std::vector<int>(0, 0);
         last_spike = std::vector<long int>(size, -10000L);
@@ -92,21 +89,30 @@ struct Population{{ population.id }} {
         spiked.clear();
 
         for(int i = 0; i < size; i++) {
-            double _v = ((g_exc[i] * v[i]) - v[i]) / 10;
+            {% for var, equation in update_equations %}
+            double _{{ var }} = {{ equation }};
+            {% endfor %}
 
-            v[i] += dt * _v ;
+            {% for var, _ in update_equations %}
+            {{ var }}[i] += dt * _{{ var }};
+            {% endfor %}
+
 
             g_exc[i] = 0.0;
 
-            if(v[i] > -10) {
-                v[i] = 0;
+            {% if spike_condition %}
+            if({{ spike_condition }}) {
+                {% for reset_equation in reset_equations%}
+                {{ reset_equation}};
 
+                {% endfor %}
                 spiked.push_back(i);
                 last_spike[i] = t;
 
                 if(_mean_fr_window > 0)
                     _spike_history[i].push(t);
             }
+            {% endif %}
 
             if(_mean_fr_window > 0) {
                 while((_spike_history[i].size() != 0) && (_spike_history[i].front() <= t - _mean_fr_window)) {
@@ -116,5 +122,10 @@ struct Population{{ population.id }} {
                 r[i] = _mean_fr_rate * float(_spike_history[i].size());
             }
         }
+        
+        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {{ var_name }}_history.push_back({{ var_name }});
+
+        {% endfor %}
     }
 };

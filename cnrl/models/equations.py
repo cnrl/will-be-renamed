@@ -1,4 +1,4 @@
-from cnrl.parser.Parser import parse_equations
+from cnrl.parser.Parser import parse_equations, parse_conditions, parse_reset
 from cnrl.exceptions import IllegalArgumentException
 
 
@@ -6,9 +6,6 @@ class Equations:
     def __init__(self, equations):
         self.equations = equations
         self._check_args()
-
-        self.equations_list = parse_equations(equations)
-
 
     def _check_args(self):
         if not isinstance(self.equations, str):
@@ -19,8 +16,18 @@ class Equations:
 
 
 class NeuronEquations(Equations):
-    pass
+    def __init__(self, equations, equation_type):
+        super().__init__(equations)
+
+        if equation_type == 'simple':
+            self.equations_list = parse_equations(equations)
+        elif equation_type == 'spike':
+            self.equations_list = parse_conditions(equations)
+        elif equation_type == 'reset':
+            self.equations_list = parse_reset(equations)
 
 
 class SynapseEquations(Equations):
-    pass
+    def __init__(self, equations):
+        super().__init__(equations)
+        self.equations_list = parse_equations(equations)
