@@ -23,10 +23,6 @@ struct Population{{ population.id }} {
     {% endif %}
     {% endfor %}
 
-    std::vector< double > v;
-    std::vector< double > r;
-    std::vector< double > g_exc;
-
     std::vector< std::queue<long int> > _spike_history;
     long int _mean_fr_window;
     double _mean_fr_rate;
@@ -50,21 +46,6 @@ struct Population{{ population.id }} {
 
     {% endif %}
     {% endfor %}
-
-    std::vector< double > get_v() { return v; }
-    double get_single_v(int rank) { return v[rank]; }
-    void set_v(std::vector< double > _v) { v = _v; }
-    void set_single_v(int rank, double _v) { v[rank] = _v; }
-
-    std::vector< double > get_r() { return r; }
-    double get_single_r(int rank) { return r[rank]; }
-    void set_r(std::vector< double > _r) { r = _r; }
-    void set_single_r(int rank, double _r) { r[rank] = _r; }
-
-    std::vector< double > get_g_exc() { return g_exc; }
-    double get_single_g_exc(int rank) { return g_exc[rank]; }
-    void set_g_exc(std::vector< double > _g_exec) { g_exc = _g_exec; }
-    void set_single_g_exc(int rank, double _g_exec) { g_exc[rank] = _g_exec; }
 
     void init_population() {
 
@@ -92,14 +73,14 @@ struct Population{{ population.id }} {
         spiked.clear();
 
         for(int i = 0; i < size; i++) {
-            {% for var, code in codes %}
-            double _{{ var }} = {{ code }};
+            {% for var, equation in update_equations %}
+            double _{{ var }} = {{ equation }};
             {% endfor %}
-            double _v = ((g_exc[i] * v[i]) - v[i]) / 10;
-            {% for var, _ in codes %}
+
+            {% for var, _ in update_equations %}
             {{ var }}[i] += dt * _{{ var }};
             {% endfor %}
-            v[i] += dt * _v ;
+
 
             g_exc[i] = 0.0;
 

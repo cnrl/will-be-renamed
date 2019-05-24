@@ -1,7 +1,7 @@
 from cnrl.exceptions import IllegalArgumentException
 from cnrl.models.population import Population
 from cnrl.models.connection import Connection
-
+from cnrl.code_generators.api import generate
 
 class Network:
     """
@@ -26,7 +26,7 @@ class Network:
         Network._instance_count += 1
 
     def compile(self):
-        pass
+        self.c_module = generate(self.id, self.populations, self.connections)
 
     def _check_args(self):
         if not isinstance(self.populations, (list, tuple)) or \

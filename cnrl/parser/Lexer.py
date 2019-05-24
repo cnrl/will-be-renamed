@@ -160,7 +160,6 @@ def variable_lexer(equations):
     variables = {}
     for eq in equations:
         lhs = str(eq["lhs_parsed"])
-        print(lhs)
         if is_name_valid(lhs):
             name = lhs
         else:

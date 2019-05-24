@@ -1,8 +1,9 @@
-from cnrl.exceptions import IllegalArgumentException, ParserException
+from cnrl.exceptions import IllegalArgumentException
 from cnrl.parser.Lexer import parameters_lexer, variable_lexer
-
+from cnrl.globals import SYNAPSE_INTERNAL_VARIABLES, NEURON_INTERNAL_VARIABLES
 
 class Parameters:
+    # TODO define all variables in parameters, there shan't be variable definition in equations
     def __init__(self, definitions, equations_list):
         self.definitions = definitions
         self.equations = equations_list
@@ -25,6 +26,7 @@ class NeuronParameters(Parameters):
 
     def __init__(self, definitions, equations_list):
         super(NeuronParameters, self).__init__(definitions, equations_list)
+        self.vars.update(NEURON_INTERNAL_VARIABLES)
 
 
 class SynapseParameters(Parameters):
@@ -32,4 +34,5 @@ class SynapseParameters(Parameters):
 
     def __init__(self, definitions, equations_list):
         super(SynapseParameters, self).__init__(definitions, equations_list)
+        self.vars.update(SYNAPSE_INTERNAL_VARIABLES)
 
