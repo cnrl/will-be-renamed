@@ -51,15 +51,11 @@ struct Population{{ population.id }} {
 
         {% for var_name, var in population.neuron.parameters.vars.items() %}
         {% if var.scope == 'population'%}
-        {{ var_name }} = 0.0;
+        {{ var_name }} = {{ var.init }};
         {% elif var.scope == 'self'%}
-        {{ var_name }} = std::vector<double>(size, 0.0);
+        {{ var_name }} = std::vector<double>(size, {{ var.init }});
         {% endif %}
         {% endfor %}
-
-        v = std::vector<double>(size, 0.0);
-        r = std::vector<double>(size, 0.0);
-        g_exc = std::vector<double>(size, 0.0);
 
         spiked = std::vector<int>(0, 0);
         last_spike = std::vector<long int>(size, -10000L);

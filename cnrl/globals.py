@@ -17,7 +17,7 @@ NEURON_INTERNAL_VARIABLES = {
 SYNAPSE_INTERNAL_VARIABLES = {
     'w': {
         'scope': 'self',
-        'init': 0,
+        'init': 1,
         'ctype': 'double'
     }
 }

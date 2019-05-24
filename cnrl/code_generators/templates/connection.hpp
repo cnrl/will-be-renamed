@@ -58,7 +58,6 @@ struct Connection{{ connection.id }} {
         for(int pre_idx = 0; pre_idx < population{{ connection.pre.id }}.spiked.size(); pre_idx++) {
 
             int spiked_idx = population{{ connection.pre.id }}.spiked[pre_idx];
-
             auto inv_post_ptr = inv_pre_rank.find(spiked_idx);
             if (inv_post_ptr == inv_pre_rank.end())
                 continue;
@@ -68,7 +67,6 @@ struct Connection{{ connection.id }} {
             for(int post_idx = 0; post_idx < inv_post.size(); post_idx++) {
                 int i = inv_post[post_idx].first;
                 int j = inv_post[post_idx].second;
-
                 population{{ connection.post.id }}.g_exc[post_rank[i]] += w[i][j];
             }
         }
