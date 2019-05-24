@@ -36,8 +36,8 @@ class Network:
         self._bind_c_instances()
 
     def simulate(self, duration):
-        self.c_module.initialize(1)
-        self.c_module.run(duration)
+        self.c_module.initialize(0.001)
+        self.c_module.run(duration / self.c_module.get_dt())
 
     def _check_args(self):
         if not isinstance(self.populations, (list, tuple)) or \
