@@ -23,6 +23,8 @@ class Connection:
 
         self._check_args()
 
+        self.wrapper = None
+
         self.id = Connection._instance_count
         Connection._instance_count += 1
 

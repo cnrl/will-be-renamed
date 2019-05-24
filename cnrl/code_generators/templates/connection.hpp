@@ -35,7 +35,7 @@ struct Connection{{ connection.id }} {
 
         {% for var_name, var in connection.synapse.parameters.vars.items() %}
         for(int post_idx = 0;post_idx < post_rank.size(); post_idx++)
-            {{ var_name }}.push_back(std::vector<double>(pre_rank[post_idx].size(), {{ var.init }}));
+            {{ var_name }}[post_idx] = std::vector<double>(pre_rank[post_idx].size(), {{ var.init }});
 
         {% endfor %}
     }

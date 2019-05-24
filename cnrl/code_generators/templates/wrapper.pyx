@@ -115,9 +115,6 @@ cdef class Population{{ population.id }}Wrapper:
 
 {% for connection in connections %}
 cdef class Connection{{ connection.id }}Wrapper:
-    def __cinit__(self, pre_rank, post_rank):
-        connection{{ connection.id }}.set_post_rank(post_rank)
-        connection{{ connection.id }}.set_pre_rank(pre_rank)
 
     def nb_synapses(self, rank):
         return connection{{ connection.id }}.nb_synapses(rank)

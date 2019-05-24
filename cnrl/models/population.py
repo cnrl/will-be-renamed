@@ -26,6 +26,8 @@ class Population:
         self.dimension = len(self.shape)
         self.size = reduce(lambda x, y: x * y, self.shape)
 
+        self.wrapper = None
+
         self.id = Population._instance_count
         Population._instance_count += 1
 

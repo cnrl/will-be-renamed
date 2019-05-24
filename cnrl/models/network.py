@@ -25,8 +25,19 @@ class Network:
         self.id = Network._instance_count
         Network._instance_count += 1
 
+    def _bind_c_instances(self):
+        for population in self.populations:
+            population.wrapper = getattr(self.c_module, 'Population{}Wrapper'.format(population.id))(population.size)
+        for connection in self.connections:
+            connection.wrapper = getattr(self.c_module, 'Connection{}Wrapper'.format(connection.id))()
+
     def compile(self):
         self.c_module = generate(self.id, self.populations, self.connections)
+        self._bind_c_instances()
+
+    def simulate(self, duration):
+        self.c_module.initialize(1)
+        self.c_module.run(duration)
 
     def _check_args(self):
         if not isinstance(self.populations, (list, tuple)) or \
