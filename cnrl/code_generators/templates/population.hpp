@@ -84,15 +84,19 @@ struct Population{{ population.id }} {
 
             g_exc[i] = 0.0;
 
-            if(v[i] > -10) {
-                v[i] = 0;
+            {% if spike_condition %}
+            if({{ spike_condition }}) {
+                {% for reset_equation in reset_equations%}
+                {{ reset_equation}};
 
+                {% endfor %}
                 spiked.push_back(i);
                 last_spike[i] = t;
 
                 if(_mean_fr_window > 0)
                     _spike_history[i].push(t);
             }
+            {% endif %}
 
             if(_mean_fr_window > 0) {
                 while((_spike_history[i].size() != 0) && (_spike_history[i].front() <= t - _mean_fr_window)) {

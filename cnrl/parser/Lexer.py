@@ -1,4 +1,5 @@
 from re import split, compile, findall
+from sympy import sympify
 
 from cnrl.globals import named_constants, keywords
 from cnrl.exceptions import ParserException
@@ -185,10 +186,10 @@ def variable_lexer(equations):
         rhs = eq["rhs_parsed"]
         val = float(val)
         variables[name] = {
-              "init": val,
-              "scope": "self",
-              "ctype": "double",
-              "rhs": rhs
+            "init": val,
+            "scope": "self",
+            "ctype": "double",
+            "rhs": rhs
         }
     return variables
 
@@ -221,5 +222,6 @@ def conditional_equations_lexer(equations):
 
         eqs.append({"lhs": lhs,
                     "rhs": rhs,
-                    "op": op})
+                    "op": op,
+                    "equation": sympify(equations, evaluate=False)})
     return eqs
