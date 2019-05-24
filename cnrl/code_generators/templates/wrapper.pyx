@@ -33,6 +33,15 @@ cdef extern from "core.h":
         {% endif %}
 
         {% endfor %}
+
+        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {% if var.scope == 'population' %}
+        vector[double] get_{{ var_name }}_history()
+        {% elif var.scope == 'self' %}
+        vector[vector[double]] get_{{ var_name }}_history()
+        {% endif %}
+
+        {% endfor %}
         void compute_firing_rate(double window)
 
     {% endfor %}
@@ -108,6 +117,13 @@ cdef class Population{{ population.id }}Wrapper:
     {% endif %}
 
     {% endfor %}
+
+    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    cpdef np.ndarray get_{{ var_name }}_history(self):
+        return np.array(population{{ population.id }}.get_{{ var_name }}_history())
+
+    {% endfor %}
+
     cpdef compute_firing_rate(self, double window):
         population{{ population.id }}.compute_firing_rate(window)
 

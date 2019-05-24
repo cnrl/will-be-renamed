@@ -23,6 +23,15 @@ struct Population{{ population.id }} {
     {% endif %}
     {% endfor %}
 
+    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% if var.scope == 'population'%}
+    std::vector<double> {{ var_name }}_history;
+    {% elif var.scope == 'self'%}
+    std::vector<std::vector< double > >{{ var_name }}_history;
+    {% endif %}
+
+    {% endfor %}
+
     std::vector< std::queue<long int> > _spike_history;
     long int _mean_fr_window;
     double _mean_fr_rate;
@@ -46,6 +55,17 @@ struct Population{{ population.id }} {
 
     {% endif %}
     {% endfor %}
+
+  {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% if var.scope == 'population'%}
+    std::vector<double> get_{{ var_name }}_history() { return {{ var_name }}_history; }
+
+    {% elif var.scope == 'self'%}
+    std::vector< std::vector<double> > get_{{ var_name }}_history() { return {{ var_name }}_history; }
+
+    {% endif %}
+    {% endfor %}
+
 
     void init_population() {
 
@@ -102,5 +122,10 @@ struct Population{{ population.id }} {
                 r[i] = _mean_fr_rate * float(_spike_history[i].size());
             }
         }
+        
+        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {{ var_name }}_history.push_back({{ var_name }});
+
+        {% endfor %}
     }
 };
