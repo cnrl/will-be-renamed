@@ -1,7 +1,7 @@
 from cnrl.globals import FORBIDDEN_POPULATION_VAR_NAMES
 from cnrl.models.parameters import NeuronParameters
 from cnrl.models.equations import NeuronEquations
-from cnrl.parser.Parser import check_variable_definition
+from cnrl.parser.parser import check_variable_definition
 
 
 class Neuron:

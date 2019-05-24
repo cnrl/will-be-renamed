@@ -1,7 +1,7 @@
 from sympy import sympify, Eq
 from sympy.core.symbol import Symbol
 
-from cnrl.parser.Lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
+from cnrl.parser.lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
 from cnrl.exceptions import ParserException
 
 

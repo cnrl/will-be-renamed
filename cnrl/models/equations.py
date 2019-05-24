@@ -1,4 +1,4 @@
-from cnrl.parser.Parser import parse_equations, parse_conditions, parse_reset
+from cnrl.parser.parser import parse_equations, parse_conditions, parse_reset
 from cnrl.exceptions import IllegalArgumentException
 
 

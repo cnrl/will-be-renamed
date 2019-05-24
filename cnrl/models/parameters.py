@@ -1,5 +1,5 @@
 from cnrl.exceptions import IllegalArgumentException
-from cnrl.parser.Lexer import parameters_lexer, variable_lexer
+from cnrl.parser.lexer import parameters_lexer, variable_lexer
 from cnrl.globals import SYNAPSE_INTERNAL_VARIABLES, NEURON_INTERNAL_VARIABLES
 
 class Parameters:
