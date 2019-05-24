@@ -32,6 +32,12 @@ struct Connection{{ connection.id }} {
         {% for var_name, var in connection.synapse.parameters.vars.items() %}
         {{ var_name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
         {% endfor %}
+
+        {% for var_name, var in connection.synapse.parameters.vars.items() %}
+        for(int post_idx = 0;post_idx < post_rank.size(); post_idx++)
+            {{ var_name }}.push_back(std::vector<double>(pre_rank[post_idx].size(), {{ var.init }}));
+
+        {% endfor %}
     }
 
     void inverse_connectivity_matrix() {
