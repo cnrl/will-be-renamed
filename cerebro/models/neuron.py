@@ -1,7 +1,8 @@
 from cerebro.globals import FORBIDDEN_POPULATION_VAR_NAMES
-from cerebro.models.parameters import NeuronParameters
+from cerebro.models.variables import NeuronVariables
 from cerebro.models.equations import NeuronEquations
 from cerebro.parser.parser import check_variable_definition
+from cerebro.enums import EquationType
 
 
 class Neuron:
@@ -9,19 +10,19 @@ class Neuron:
         Class to define a neuron.
     """
 
-    def __init__(self, parameters='', equations='', spike=None, reset=None):
+    def __init__(self, variables='', equations='', spike=None, reset=None):
         """
             Parameters:
 
-            > parameters: Parameters of the neuron and their initial values.
+            > variables: Variables of the neuron and their initial values.
             > equations: Equations of the neuron, defining the temporal evolution of variables.
             > spike: Spike emission condition.
             > reset: Changes to the variables after a spike.
         """
-        self.equations = NeuronEquations(equations, 'simple')
-        self.parameters = NeuronParameters(parameters, self.equations.equations_list)
-        self.spike = NeuronEquations(spike, 'spike') if spike is not None else None
-        self.reset = NeuronEquations(reset, 'reset') if reset is not None else None
+        self.equations = NeuronEquations(equations, EquationType.SIMPLE)
+        self.parameters = NeuronVariables(variables, self.equations.equations_list)
+        self.spike = NeuronEquations(spike, EquationType.SPIKE) if spike is not None else None
+        self.reset = NeuronEquations(reset, EquationType.RESET) if reset is not None else None
 
         check_variable_definition(self.equations, self.parameters.vars, FORBIDDEN_POPULATION_VAR_NAMES)
 

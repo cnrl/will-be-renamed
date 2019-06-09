@@ -1,5 +1,5 @@
 from cerebro.globals import FORBIDDEN_CONNECTION_VAR_NAMES
-from cerebro.models.parameters import SynapseParameters
+from cerebro.models.variables import SynapseVariables
 from cerebro.models.equations import SynapseEquations
 from cerebro.parser.parser import check_variable_definition
 
@@ -16,7 +16,7 @@ class Synapse:
             > equations: Equations of the synapse, defining the temporal evolution of variables.
         """
         self.equations = SynapseEquations(equations)
-        self.parameters = SynapseParameters(parameters, self.equations.equations_list)
+        self.parameters = SynapseVariables(parameters, self.equations.equations_list)
         check_variable_definition(self.equations, self.parameters.vars, FORBIDDEN_CONNECTION_VAR_NAMES)
 
     def __repr__(self):

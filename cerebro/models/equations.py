@@ -1,5 +1,6 @@
 from cerebro.parser.parser import parse_equations, parse_conditions, parse_reset
 from cerebro.exceptions import IllegalArgumentException
+from cerebro.enums import EquationType
 
 
 class Equations:
@@ -19,11 +20,11 @@ class NeuronEquations(Equations):
     def __init__(self, equations, equation_type):
         super().__init__(equations)
 
-        if equation_type == 'simple':
+        if equation_type == EquationType.SIMPLE:
             self.equations_list = parse_equations(equations)
-        elif equation_type == 'spike':
+        elif equation_type == EquationType.SPIKE:
             self.equations_list = parse_conditions(equations)
-        elif equation_type == 'reset':
+        elif equation_type == EquationType.RESET:
             self.equations_list = parse_reset(equations)
 
 

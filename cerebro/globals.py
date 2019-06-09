@@ -24,5 +24,9 @@ SYNAPSE_INTERNAL_VARIABLES = {
 
 PACKAGE_NAME = 'cerebro'
 
-keywords = []
-named_constants = []
+# TODO: complete list below
+RESERVED_WORDS = ['population', 'connection', 'neuron', 'synapse', 'spike', 'reset', 'const', 'int', 'double', 'float']
+
+NAME_PATTERN = "[A-Za-z][A-Za-z0-9_]*"
+NUMERAL_PATTERN = "[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
+VARIABLE_CONSTRAINTS = ["population", "connection", "local", "const"]

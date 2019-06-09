@@ -1,25 +1,39 @@
 from sympy import sympify, Eq
 from sympy.core.symbol import Symbol
 
-from cerebro.parser.lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
-from cerebro.exceptions import ParserException
+from cerebro.parser.param_extractor import equations_lexer, variables_lexer
+from cerebro.exceptions import ParseException
+from cerebro.globals import FORBIDDEN_CONNECTION_VAR_NAMES, FORBIDDEN_POPULATION_VAR_NAMES, RESERVED_WORDS
+from cerebro.enums import VariableContext
 
 
-def parse_parameters(parameters):
+def parse_variables(variables, context):
     """
-    Parse parameters argument in a neuron or synapse. It returns
-    a dictionary with name of parameter as the keys. The values are dictionaries with scope,
-    init, and ctype as keys. If no scope and type is given as constraint to parameter, self
+    Parse variables argument in a neuron or synapse. It returns
+    a dictionary with name of variable as the keys. The values are dictionaries with scope,
+    init, and ctype as keys. If no scope and type is given as constraint to variable, self
     and double will be placed, respectively.
     Example:
-    parameters=\"\"\"
+    variables=\"\"\"
         x = 0.0 : population
                 \"\"\"
     { 'x': {'scope': 'population', 'ctype': 'double', 'init': '0.0'}}
-    :param parameters: str
+    :param variables: str
+    :param context: VariableContext
     :return: dict
     """
-    return parameters_lexer(parameters)
+    lexed = variables_lexer(variables, context)
+
+    var_names = list(lexed.keys())
+    for var_name in var_names:
+        if context == VariableContext.NEURON and var_name in FORBIDDEN_POPULATION_VAR_NAMES:
+            raise ParseException("{} is a reserved population variable name".format(var_name))
+        if context == VariableContext.SYNAPSE and var_name in FORBIDDEN_CONNECTION_VAR_NAMES:
+            raise ParseException("{} is a reserved connection variable name".format(var_name))
+        if var_name in RESERVED_WORDS:
+            raise ParseException("{} is a reserved core word".format(var_name))
+
+    return lexed
 
 
 def parse_equations(equations):
@@ -30,27 +44,19 @@ def parse_equations(equations):
     :return: list
     """
     equations = equations_lexer(equations)
-    eqs = []
-    for eq in equations:
-        rhs = eq["rhs"].replace("pre.", "_pre_")
-        rhs = rhs.replace("post.", "_post_")
-        lhs = eq["lhs"].replace("pre.", "_pre_")
-        lhs = lhs.replace("post.", "_post_")
 
-        if eq['is_ode']:
-            lhs = Symbol(ode_var_name(lhs)[0])
+    eqs = []
+
+    for eq in equations:
+        rhs = eq["rhs"].replace("pre.", "_pre_").replace("post.", "_post_")
+
         try:
-            if not eq['is_ode']:
-                lhs = sympify(lhs, evaluate=False)
             rhs = sympify(rhs, evaluate=False)
         except Exception:
-            raise ParserException("Invalid syntax for equation")
-        constraints = eq["constraint"]
-        eqs.append({"lhs_parsed": lhs,
-                    "rhs_parsed": rhs,
-                    "is_ode": eq["is_ode"],
-                    "constraints": constraints,
-                    "equation_parsed": Eq(lhs, rhs)})
+            raise ParseException("Invalid syntax for equation")
+
+        eqs.append({"lhs_parsed": eq["lhs"], "rhs_parsed": rhs, "ode": eq["ode"]})
+
     return eqs
 
 
@@ -65,7 +71,7 @@ def parse_reset(equations):
     eqs = parse_equations(equations)
     for eq in eqs:
         if eq["is_ode"]:
-            raise ParserException("Reset equation can not be an ODE")
+            raise ParseException("Reset equation can not be an ODE")
     return eqs
 
 
@@ -85,12 +91,12 @@ def parse_mathematical_expr(expr):
     return sympify(expr, evaluate=False)
 
 
-def check_variable_definition(equations, parameters, builtins):
+def check_variable_definition(equations, variables, builtins):
     """
     Check if all symbols in an equation are defined. An exception is raised in case
-    a variable or parameter is not defined.
+    a variable or variable is not defined.
     :param equations: str
-    :param parameters: dict
+    :param variables: dict
     :param builtins: tuple
     :return: None
     """
@@ -98,5 +104,5 @@ def check_variable_definition(equations, parameters, builtins):
     builtins = {Symbol(builtin_symbol) for builtin_symbol in builtins}
     for eq in equations.equations_list:
         for sym in (eq["rhs_parsed"].atoms() or eq["lhs_parsed"].atoms()) - set(builtins):
-            if isinstance(sym, Symbol) and str(sym) not in parameters and not str(sym).startswith('_'):
-                raise ParserException("{} is not defined in this scope.".format(sym))
+            if isinstance(sym, Symbol) and str(sym) not in variables and not str(sym).startswith('_'):
+                raise ParseException("{} is not defined in this scope.".format(sym))

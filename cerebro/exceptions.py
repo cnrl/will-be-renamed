@@ -8,6 +8,6 @@ class IllegalStateException(Exception):
         self.message = message
 
 
-class ParserException(Exception):
+class ParseException(Exception):
     def __init__(self, message):
         self.message = message
