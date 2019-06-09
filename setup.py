@@ -1,8 +1,6 @@
 from setuptools import setup
 from cerebro.globals import PACKAGE_NAME
 
-# TODO: change package name (name and packages)
-# TODO: change url when package name changed
 # TODO: consider versions in dependencies
 setup(
     name=PACKAGE_NAME,
