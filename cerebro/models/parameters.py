@@ -1,6 +1,6 @@
-from cnrl.exceptions import IllegalArgumentException
-from cnrl.parser.lexer import parameters_lexer, variable_lexer
-from cnrl.globals import SYNAPSE_INTERNAL_VARIABLES, NEURON_INTERNAL_VARIABLES
+from cerebro.exceptions import IllegalArgumentException
+from cerebro.parser.lexer import parameters_lexer, variable_lexer
+from cerebro.globals import SYNAPSE_INTERNAL_VARIABLES, NEURON_INTERNAL_VARIABLES
 
 class Parameters:
     # TODO define all variables in parameters, there shan't be variable definition in equations

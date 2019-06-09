@@ -1,7 +1,7 @@
-from cnrl.globals import FORBIDDEN_CONNECTION_VAR_NAMES
-from cnrl.models.parameters import SynapseParameters
-from cnrl.models.equations import SynapseEquations
-from cnrl.parser.parser import check_variable_definition
+from cerebro.globals import FORBIDDEN_CONNECTION_VAR_NAMES
+from cerebro.models.parameters import SynapseParameters
+from cerebro.models.equations import SynapseEquations
+from cerebro.parser.parser import check_variable_definition
 
 class Synapse:
     """

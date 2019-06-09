@@ -1,7 +1,7 @@
-from cnrl.exceptions import IllegalArgumentException
-from cnrl.models.population import Population
-from cnrl.models.connection import Connection
-from cnrl.code_generation.api import generate
+from cerebro.exceptions import IllegalArgumentException
+from cerebro.models.population import Population
+from cerebro.models.connection import Connection
+from cerebro.code_generation.api import generate
 
 class Network:
     """

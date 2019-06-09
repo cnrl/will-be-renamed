@@ -1,8 +1,8 @@
 from sympy import sympify, Eq
 from sympy.core.symbol import Symbol
 
-from cnrl.parser.lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
-from cnrl.exceptions import ParserException
+from cerebro.parser.lexer import parameters_lexer, equations_lexer, conditional_equations_lexer, ode_var_name
+from cerebro.exceptions import ParserException
 
 
 def parse_parameters(parameters):

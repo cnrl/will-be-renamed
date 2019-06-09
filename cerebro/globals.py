@@ -22,7 +22,7 @@ SYNAPSE_INTERNAL_VARIABLES = {
     }
 }
 
-PACKAGE_NAME = 'cnrl'
+PACKAGE_NAME = 'cerebro'
 
 keywords = []
 named_constants = []

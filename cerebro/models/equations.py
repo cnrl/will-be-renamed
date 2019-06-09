@@ -1,5 +1,5 @@
-from cnrl.parser.parser import parse_equations, parse_conditions, parse_reset
-from cnrl.exceptions import IllegalArgumentException
+from cerebro.parser.parser import parse_equations, parse_conditions, parse_reset
+from cerebro.exceptions import IllegalArgumentException
 
 
 class Equations:

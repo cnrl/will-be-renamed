@@ -1,8 +1,8 @@
 from re import split, compile, findall
 from sympy import sympify
 
-from cnrl.globals import named_constants, keywords
-from cnrl.exceptions import ParserException
+from cerebro.globals import named_constants, keywords
+from cerebro.exceptions import ParserException
 
 
 def is_name_valid(name):

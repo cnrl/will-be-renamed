@@ -4,7 +4,7 @@ import importlib
 from jinja2 import FileSystemLoader, Environment
 from sympy import Symbol
 
-from cnrl.exceptions import IllegalStateException
+from cerebro.exceptions import IllegalStateException
 
 
 # generates cpp code, compiles it and returns dynamically loaded module

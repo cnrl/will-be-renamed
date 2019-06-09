@@ -1,6 +1,6 @@
-from cnrl.models.population import Population
-from cnrl.models.synapse import Synapse
-from cnrl.exceptions import IllegalArgumentException
+from cerebro.models.population import Population
+from cerebro.models.synapse import Synapse
+from cerebro.exceptions import IllegalArgumentException
 
 
 class Connection:
