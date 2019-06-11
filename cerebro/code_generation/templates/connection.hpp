@@ -12,7 +12,7 @@ struct Connection{{ connection.id }} {
     std::map< int, std::vector< std::pair<int, int> > > inv_pre_rank ;
     std::vector< int > inv_post_rank ;
 
-    {% for var_name, var in connection.synapse.parameters.vars.items() %}
+    {% for var_name, var in connection.synapse.variables.vars.items() %}
     std::vector< std::vector<double > > {{ var_name }};
     {% endfor %}
 
@@ -29,11 +29,11 @@ struct Connection{{ connection.id }} {
 
         inverse_connectivity_matrix();
 
-        {% for var_name, var in connection.synapse.parameters.vars.items() %}
+        {% for var_name, var in connection.synapse.variables.vars.items() %}
         {{ var_name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
         {% endfor %}
 
-        {% for var_name, var in connection.synapse.parameters.vars.items() %}
+        {% for var_name, var in connection.synapse.variables.vars.items() %}
         for(int post_idx = 0;post_idx < post_rank.size(); post_idx++)
             {{ var_name }}[post_idx] = std::vector<double>(pre_rank[post_idx].size(), {{ var.init }});
 
@@ -111,7 +111,7 @@ struct Connection{{ connection.id }} {
     }
 
 
-    {% for var_name, var in connection.synapse.parameters.vars.items() %}
+    {% for var_name, var in connection.synapse.variables.vars.items() %}
     std::vector<std::vector< double > > get_{{ var_name }}() {
         return {{ var_name }};
     }

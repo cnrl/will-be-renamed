@@ -134,13 +134,3 @@ def equations_lexer(equations):
         eqs.append(eq_specs)
 
     return eqs
-
-
-def reset_equations_lexer(equations):
-    lexed = equations_lexer(equations)
-
-    for eq in lexed:
-        if eq["ode"]:
-            raise Exception("reset expression cannot be an ODE")
-
-    return lexed

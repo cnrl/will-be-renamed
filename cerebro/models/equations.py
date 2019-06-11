@@ -1,9 +1,13 @@
+from abc import ABC, abstractmethod
+
 from cerebro.parser.parser import parse_equations, parse_conditions, parse_reset
 from cerebro.exceptions import IllegalArgumentException
 from cerebro.enums import EquationType
 
 
-class Equations:
+class Equations(ABC):
+
+    @abstractmethod
     def __init__(self, equations):
         self.equations = equations
         self._check_args()

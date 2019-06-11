@@ -1,4 +1,4 @@
-from sympy import sympify, Eq
+from sympy import sympify
 from sympy.core.symbol import Symbol
 
 from cerebro.parser.param_extractor import equations_lexer, variables_lexer
@@ -49,13 +49,15 @@ def parse_equations(equations):
 
     for eq in equations:
         rhs = eq["rhs"].replace("pre.", "_pre_").replace("post.", "_post_")
+        lhs = eq["lhs"]
 
         try:
             rhs = sympify(rhs, evaluate=False)
+            lhs = Symbol(lhs)
         except Exception:
             raise ParseException("Invalid syntax for equation")
 
-        eqs.append({"lhs_parsed": eq["lhs"], "rhs_parsed": rhs, "ode": eq["ode"]})
+        eqs.append({"lhs_parsed": lhs, "rhs_parsed": rhs, "ode": eq["ode"]})
 
     return eqs
 
@@ -70,39 +72,23 @@ def parse_reset(equations):
         """
     eqs = parse_equations(equations)
     for eq in eqs:
-        if eq["is_ode"]:
+        if eq["ode"]:
             raise ParseException("Reset equation can not be an ODE")
+
     return eqs
 
 
 def parse_conditions(conditions):
     """
-        Parse the input string for spike argument in a neuron. It follows the pattern
-        lhs op rhs
-        where lhs is a variable, op is either >, <, >=, <=, !=, or ==, and rhs is a
-        value. It returns a list of dictionaries with lhs, rhs, and op as the keys.
+        Parse the input string for spike argument in a neuron.
         :param conditions: str
         :return: list
         """
-    return conditional_equations_lexer(conditions)
+    try:
+        parsed = sympify(conditions, evaluate=False)
+    except Exception:
+        raise ParseException("Invalid syntax for spike conditions")
 
-
-def parse_mathematical_expr(expr):
-    return sympify(expr, evaluate=False)
-
-
-def check_variable_definition(equations, variables, builtins):
-    """
-    Check if all symbols in an equation are defined. An exception is raised in case
-    a variable or variable is not defined.
-    :param equations: str
-    :param variables: dict
-    :param builtins: tuple
-    :return: None
-    """
-    # TODO check pre.variable and post.variable differently and right
-    builtins = {Symbol(builtin_symbol) for builtin_symbol in builtins}
-    for eq in equations.equations_list:
-        for sym in (eq["rhs_parsed"].atoms() or eq["lhs_parsed"].atoms()) - set(builtins):
-            if isinstance(sym, Symbol) and str(sym) not in variables and not str(sym).startswith('_'):
-                raise ParseException("{} is not defined in this scope.".format(sym))
+    return [
+        {"lhs_parsed": None, "rhs_parsed": parsed, "ode": False}
+    ]

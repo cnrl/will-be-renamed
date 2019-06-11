@@ -21,7 +21,7 @@ cdef extern from "core.h":
         int get_size()
         void set_size(int)
 
-        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {% for var_name, var in population.neuron.variables.vars.items() %}
         {% if var.scope == 'population' %}
         double  get_{{ var_name }}()
         void set_{{ var_name }}(double)
@@ -34,7 +34,7 @@ cdef extern from "core.h":
 
         {% endfor %}
 
-        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {% for var_name, var in population.neuron.variables.vars.items() %}
         {% if var.scope == 'population' %}
         vector[double] get_{{ var_name }}_history()
         {% elif var.scope == 'self' %}
@@ -70,7 +70,7 @@ cdef extern from "core.h":
         void set_dendrite_w(int, vector[double])
         void set_synapse_w(int, int, double)
 
-        {% for var_name, var in connection.synapse.parameters.vars.items() %}
+        {% for var_name, var in connection.synapse.variables.vars.items() %}
         {% if var_name != 'w' %}
         vector[vector[double]] get_{{ var_name }}()
         vector[double] get_dendrite_{{ var_name }}(int)
@@ -95,7 +95,7 @@ cdef class Population{{ population.id }}Wrapper:
         def __get__(self):
             return population{{ population.id }}.get_size()
 
-    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% for var_name, var in population.neuron.variables.vars.items() %}
     {% if var.scope == 'population' %}
     cpdef double get_{{ var_name }}(self):
         return population{{ population.id }}.get_{{ var_name }}()
@@ -118,7 +118,7 @@ cdef class Population{{ population.id }}Wrapper:
 
     {% endfor %}
 
-    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% for var_name, var in population.neuron.variables.vars.items() %}
     cpdef np.ndarray get_{{ var_name }}_history(self):
         return np.array(population{{ population.id }}.get_{{ var_name }}_history())
 
@@ -153,7 +153,7 @@ cdef class Connection{{ connection.id }}Wrapper:
     def set_synapse_w(self, int rank_post, int rank_pre, double value):
         connection{{ connection.id }}.set_synapse_w(rank_post, rank_pre, value)
 
-    {% for var_name, var in connection.synapse.parameters.vars.items() %}
+    {% for var_name, var in connection.synapse.variables.vars.items() %}
     {% if var_name != 'w' %}
     def get_{{ var_name }}(self):
         return connection{{ connection.id }}.get_{{ var_name }}()

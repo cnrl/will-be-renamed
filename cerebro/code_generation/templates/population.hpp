@@ -15,7 +15,7 @@ struct Population{{ population.id }} {
     std::vector<long int> last_spike;
     std::vector<int> spiked;
 
-    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% for var_name, var in population.neuron.variables.vars.items() %}
     {% if var.scope == 'population'%}
     double {{ var_name }};
     {% elif var.scope == 'self'%}
@@ -23,7 +23,7 @@ struct Population{{ population.id }} {
     {% endif %}
     {% endfor %}
 
-    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% for var_name, var in population.neuron.variables.vars.items() %}
     {% if var.scope == 'population'%}
     std::vector<double> {{ var_name }}_history;
     {% elif var.scope == 'self'%}
@@ -42,7 +42,7 @@ struct Population{{ population.id }} {
         }
     };
 
-    {% for var_name, var in population.neuron.parameters.vars.items() %}
+    {% for var_name, var in population.neuron.variables.vars.items() %}
     {% if var.scope == 'population'%}
     double get_{{ var_name }}() { return {{ var_name }}; }
     void set_{{ var_name }}(double _{{ var_name }}) { {{ var_name }} = _{{ var_name }}; }
@@ -56,7 +56,7 @@ struct Population{{ population.id }} {
     {% endif %}
     {% endfor %}
 
-  {% for var_name, var in population.neuron.parameters.vars.items() %}
+  {% for var_name, var in population.neuron.variables.vars.items() %}
     {% if var.scope == 'population'%}
     std::vector<double> get_{{ var_name }}_history() { return {{ var_name }}_history; }
 
@@ -69,7 +69,7 @@ struct Population{{ population.id }} {
 
     void init_population() {
 
-        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {% for var_name, var in population.neuron.variables.vars.items() %}
         {% if var.scope == 'population'%}
         {{ var_name }} = {{ var.init }};
         {% elif var.scope == 'self'%}
@@ -123,7 +123,7 @@ struct Population{{ population.id }} {
             }
         }
         
-        {% for var_name, var in population.neuron.parameters.vars.items() %}
+        {% for var_name, var in population.neuron.variables.vars.items() %}
         {{ var_name }}_history.push_back({{ var_name }});
 
         {% endfor %}

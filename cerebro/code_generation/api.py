@@ -77,7 +77,7 @@ def _generate_population_dependent_variable_codes(connection, variable):
             target_population = getattr(connection, population_indicator)
 
             var_access_code = 'population{}.{}'.format(target_population.id, population_dependent_variable)
-            if target_population.neuron.parameters.vars[population_dependent_variable]['scope'] == 'self':
+            if target_population.neuron.variables.vars[population_dependent_variable]['scope'] == 'self':
                 var_access_code += '[rank_{}]'.format(population_indicator)
 
     return var_access_code
@@ -85,7 +85,7 @@ def _generate_population_dependent_variable_codes(connection, variable):
 
 def _generate_population_update_equations(population):
     equations = population.neuron.equations.equations_list
-    variables = population.neuron.parameters.vars
+    variables = population.neuron.variables.vars
 
     update_equations = []
 
@@ -104,7 +104,7 @@ def _generate_population_update_equations(population):
 
 def _generate_spike_conditions(population):
     condition = population.neuron.spike.equations_list[0]
-    variables = population.neuron.parameters.vars
+    variables = population.neuron.variables.vars
 
     equation = condition["equation"]
     for var in equation.atoms():
@@ -117,7 +117,7 @@ def _generate_spike_conditions(population):
 
 def _generate_reset_equations(population):
     equations = population.neuron.reset.equations_list
-    variables = population.neuron.parameters.vars
+    variables = population.neuron.variables.vars
     reset_equations = []
 
     for equation in equations:
@@ -134,7 +134,7 @@ def _generate_reset_equations(population):
 
 def _generate_connection_update_equations(connection):
     equations = connection.synapse.equations.equations_list
-    variables = connection.synapse.parameters.vars
+    variables = connection.synapse.variables.vars
 
     update_equations = []
 
