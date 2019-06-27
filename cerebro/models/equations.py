@@ -6,6 +6,9 @@ from cerebro.enums import EquationType
 
 
 class Equations(ABC):
+    """
+    This class is an abstract class for equation definitions.
+    """
 
     @abstractmethod
     def __init__(self, equations):
@@ -21,6 +24,9 @@ class Equations(ABC):
 
 
 class NeuronEquations(Equations):
+    """
+    This class takes care of neuron equations.
+    """
     def __init__(self, equations, equation_type):
         super().__init__(equations)
 
@@ -33,6 +39,9 @@ class NeuronEquations(Equations):
 
 
 class SynapseEquations(Equations):
+    """
+    This class takes care of synapse equations.
+    """
     def __init__(self, equations):
         super().__init__(equations)
         self.equations_list = parse_equations(equations)

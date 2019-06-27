@@ -57,6 +57,12 @@ def variables_lexer(variables, context):
 
 
 def check_variable_constraints(constraints, context):
+    """
+    Checks constraints, defined in front of each variable.
+    :param constraints: str
+    :param context: str
+    :return: None
+    """
     scopes = ['population', 'connection', 'local']
     scopes_appearance = map(lambda x: x in constraints, scopes)
     if sum(scopes_appearance) > 1:
@@ -71,6 +77,12 @@ def check_variable_constraints(constraints, context):
 
 
 def apply_variable_constraints(var_specs, constraints):
+    """
+    Set variable constraint elements in variables' dictionary.
+    :param var_specs: dict
+    :param constraints: list of str
+    :return: None
+    """
     for constraint in constraints:
         if constraint == 'const':
             var_specs.update({'const': True})

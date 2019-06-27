@@ -7,6 +7,9 @@ from cerebro.globals import NAME_PATTERN
 
 
 class Node(ABC):
+    """
+    Abstract class to define abstarct syntax tree(AST) nodes.
+    """
 
     @abstractmethod
     def __init__(self):
@@ -14,6 +17,12 @@ class Node(ABC):
 
     @staticmethod
     def extract(sympy_object, **kwargs):
+        """
+        Extract type of AST node.
+        :param sympy_object:
+        :param kwargs:
+        :return:
+        """
         is_variable = kwargs.get('is_variable')
         if is_variable is None:
             raise Exception('Internal Error: Node.extract should have is_variable method in kwargs')
@@ -47,6 +56,9 @@ class Node(ABC):
 
 
 class Operator(Node, ABC):
+    """
+    Class to take care of operator nodes in AST.
+    """
     def __init__(self, children):
         super().__init__()
         self.children = children
@@ -57,6 +69,9 @@ class Operator(Node, ABC):
 
 
 class Mul(Operator):
+    """
+    Class to take care of multiplication operator nodes in AST.
+    """
     def __init__(self, children):
         super().__init__(children)
 
@@ -65,6 +80,9 @@ class Mul(Operator):
 
 
 class Add(Operator):
+    """
+    Class to take care of addition operator nodes in AST.
+    """
     def __init__(self, children):
         super().__init__(children)
 
@@ -73,6 +91,9 @@ class Add(Operator):
 
 
 class Pow(Operator):
+    """
+    Class to take care of power operator nodes in AST.
+    """
     def __init__(self, children):
         super().__init__(children)
 
@@ -82,6 +103,9 @@ class Pow(Operator):
 
 
 class Derivative(Operator):
+    """
+    Class to take care of derivative nodes in AST.
+    """
     PATTERN = re.compile('d(?P<NAME>{})'.format(NAME_PATTERN))
 
     def __init__(self, children):
@@ -110,6 +134,9 @@ class Derivative(Operator):
 
 
 class Proprietorship(Operator):
+    """
+    Class to handle proprietorship of variables, e.g. in synapse equation(pre.r).
+    """
     PATTERN = re.compile("^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=NAME_PATTERN))
 
     def __init__(self, children):

@@ -1,6 +1,6 @@
-from cerebro.models.variables import NeuronVariables
-from cerebro.models.equations import NeuronEquations
 from cerebro.enums import EquationType
+from cerebro.models.equations import NeuronEquations
+from cerebro.models.variables import NeuronVariables
 
 
 class Neuron:
