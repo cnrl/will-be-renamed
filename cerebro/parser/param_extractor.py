@@ -5,7 +5,7 @@ from cerebro.exceptions import ParseException
 from cerebro.enums import VariableContext
 
 
-def variables_lexer(variables, context):
+def variables_lexer(variables):
     """
     Lex the input string for variables argument in a neuron or synapse. It returns
     a dictionary with name of variable as the keys. The values are dictionaries with scope,
@@ -17,7 +17,6 @@ def variables_lexer(variables, context):
                 \"\"\"
     { 'x': {'scope': 'population', 'ctype': 'double', 'init': '0.0', 'const': True}}
     :param variables: str
-    :param context: VariableContext
     :return: dict
     """
 
@@ -25,7 +24,7 @@ def variables_lexer(variables, context):
     scoped_pattern = "^\s*(?P<NAME>{})\s*=\s*(?P<VALUE>{})\s*:\s*(?P<CONSTRAINTS>{})\s*$".format(
         NAME_PATTERN, NUMERAL_PATTERN, keywords_pattern
     )
-    unscoped_pattern = "^\s*(?P<NAME>{})\s*=\s*(?P<VALUE>{})\s*$".format(NAME_PATTERN, NUMERAL_PATTERN)
+    not_scoped_pattern = "^\s*(?P<NAME>{})\s*=\s*(?P<VALUE>{})\s*$".format(NAME_PATTERN, NUMERAL_PATTERN)
 
     params = {}
 
@@ -33,7 +32,7 @@ def variables_lexer(variables, context):
         matched = re.compile(scoped_pattern).search(line)
 
         if matched is None:
-            matched = re.compile(unscoped_pattern).search(line)
+            matched = re.compile(not_scoped_pattern).search(line)
 
         if matched is None:
             raise ParseException("invalid variable definition: {}".format(line))
@@ -44,12 +43,12 @@ def variables_lexer(variables, context):
         var_value = groups.get("VALUE")
         var_constraints = groups.get("CONSTRAINTS")
 
-        var_specs = {'ctype': "double", 'init': var_value, 'const': False, 'scope': 'local'}
-
-        if var_constraints is not None:
-            split_constraints = var_constraints.split()
-            check_variable_constraints(split_constraints, context)
-            apply_variable_constraints(var_specs, split_constraints)
+        # var_specs = {'ctype': "double", 'init': var_value, 'const': False, 'scope': 'local'}
+        var_specs = {'init': var_value, 'constraints': var_constraints}
+        # if var_constraints is not None:
+        #     split_constraints = var_constraints.split()
+        #     check_variable_constraints(split_constraints, context)
+        #     apply_variable_constraints(var_specs, split_constraints)
 
         params[var_name] = var_specs
 
@@ -122,18 +121,18 @@ def equations_lexer(equations):
     eqs = []
 
     for line in [part for part in equations.split('\n') if part.strip()]:
-        eq_specs = {'lhs': None, 'rhs': None, 'ode': None}
+        eq_specs = {'lhs': None, 'rhs': None, 'equation_type': 'simple'}
 
         ode_matched = re.compile(ode_pattern).search(line)
         simple_matched = re.compile(simple_pattern).search(line)
         matched = None
 
         if ode_matched is not None:
-            eq_specs.update({'ode': True})
+            eq_specs.update({'equation_type': 'ode'})
             matched = ode_matched
 
         if simple_matched is not None:
-            eq_specs.update({'ode': False})
+            eq_specs.update({'equation_type': 'simple'})
             matched = simple_matched
 
         if matched is None:

@@ -8,7 +8,7 @@ setup(
     description='A Simulator for Spiking Neural Networks',
     url='https://github.com/cnrl/cerebro',
     author='CNRL Team',
-    packages=['cerebro'],
+    packages=['Cerebro'],
     license='MIT',
     install_requires=['numpy', 'scikit-image', 'opencv-python', 'sympy', 'Jinja2']
 )

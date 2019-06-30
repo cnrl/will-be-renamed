@@ -2,6 +2,8 @@ from cerebro.exceptions import IllegalArgumentException
 from cerebro.models.population import Population
 from cerebro.models.connection import Connection
 from cerebro.code_generation.api import generate
+from cerebro.models.variables import Variable
+
 
 class Network:
     """
@@ -9,13 +11,14 @@ class Network:
     """
     _instance_count = 0
 
-    def __init__(self, populations=None, connections=None):
+    def __init__(self, variables='', populations=None, connections=None):
         """
             Parameters:
 
             > populations: A list of population to be added to the network.
             > connections: A list of connections to be added to the network.
         """
+        self.variables = Variable.from_raw(variables)
         self.populations = populations if populations is not None else []
         self.connections = connections if connections is not None else []
 
@@ -32,7 +35,7 @@ class Network:
             connection.wrapper = getattr(self.c_module, 'Connection{}Wrapper'.format(connection.id))()
 
     def compile(self):
-        self.c_module = generate(self.id, self.populations, self.connections)
+        self.c_module = generate(self.id, self.variables, self.populations, self.connections)
         self._bind_c_instances()
 
     def simulate(self, duration):

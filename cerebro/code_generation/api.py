@@ -8,7 +8,8 @@ from cerebro.exceptions import IllegalStateException
 
 
 # generates cpp code, compiles it and returns dynamically loaded module
-def generate(net_id, populations, connections):
+def generate(net_id, variables, populations, connections):
+    # TODO handle variables
     base_path = _create_dirs(net_id)
 
     _generate_files(base_path, populations, connections)

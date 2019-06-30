@@ -22,7 +22,7 @@ SYNAPSE_INTERNAL_VARIABLES = {
     }
 }
 
-PACKAGE_NAME = 'cerebro'
+PACKAGE_NAME = 'Cerebro'
 
 # TODO: complete list below
 RESERVED_WORDS = ['population', 'connection', 'neuron', 'synapse', 'spike', 'reset', 'const', 'int', 'double', 'float']

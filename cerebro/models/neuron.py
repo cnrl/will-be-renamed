@@ -1,6 +1,6 @@
-from cerebro.enums import EquationType
-from cerebro.models.equations import NeuronEquations
-from cerebro.models.variables import NeuronVariables
+from cerebro.models.equations import Equation
+from cerebro.models.variables import Variable
+from cerebro.parser.parser import parse_condition
 
 
 class Neuron:
@@ -17,11 +17,11 @@ class Neuron:
             > spike: Spike emission condition.
             > reset: Changes to the variables after a spike.
         """
-        self.variables = NeuronVariables(variables)
+        self.variables = Variable.from_raw(variables)
 
-        self.equations = NeuronEquations(equations, EquationType.SIMPLE)
-        self.spike = NeuronEquations(spike, EquationType.SPIKE) if spike is not None else None
-        self.reset = NeuronEquations(reset, EquationType.RESET) if reset is not None else None
+        self.equations = Equation.from_raw(equations)
+        self.spike = parse_condition(spike) if spike is not None else None
+        self.reset = Equation.from_raw(reset) if reset is not None else None
 
     def __repr__(self):
         return self.__class__.__name__ + """(

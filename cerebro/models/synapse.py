@@ -1,5 +1,5 @@
-from cerebro.models.variables import SynapseVariables
-from cerebro.models.equations import SynapseEquations
+from cerebro.models.variables import Variable
+from cerebro.models.equations import Equation
 
 
 class Synapse:
@@ -14,9 +14,8 @@ class Synapse:
             > variables: Variables of the synapse and their initial values.
             > equations: Equations of the synapse, defining the temporal evolution of variables.
         """
-        self.variables = SynapseVariables(variables)
-
-        self.equations = SynapseEquations(equations)
+        self.variables = Variable.from_raw(variables)
+        self.equations = Equation.from_raw(equations)
 
     def __repr__(self):
         return self.__class__.__name__ + """(

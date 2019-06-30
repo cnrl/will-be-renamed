@@ -78,17 +78,13 @@ def parse_reset(equations):
     return eqs
 
 
-def parse_conditions(conditions):
+def parse_condition(conditions):
     """
         Parse the input string for spike argument in a neuron.
         :param conditions: str
         :return: list
         """
     try:
-        parsed = sympify(conditions, evaluate=False)
+        return sympify(conditions, evaluate=False)
     except Exception:
         raise ParseException("Invalid syntax for spike conditions")
-
-    return [
-        {"lhs_parsed": None, "rhs_parsed": parsed, "ode": False}
-    ]

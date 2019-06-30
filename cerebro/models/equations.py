@@ -1,47 +1,18 @@
-from abc import ABC, abstractmethod
-
-from cerebro.parser.parser import parse_equations, parse_conditions, parse_reset
-from cerebro.exceptions import IllegalArgumentException
-from cerebro.enums import EquationType
+from cerebro.parser.parser import equations_lexer
 
 
-class Equations(ABC):
+class Equation:
     """
     This class is an abstract class for equation definitions.
     """
+    @staticmethod
+    def from_raw(equations):
+        lexed = equations_lexer(equations)
+        return [Equation(**equation_spec) for equation_spec in lexed]
 
-    @abstractmethod
-    def __init__(self, equations):
-        self.equations = equations
-        self._check_args()
-
-    def _check_args(self):
-        if not isinstance(self.equations, str):
-            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
+    def __init__(self, lhs, rhs, equation_type):
+        self.lhs, self.rhs = lhs, rhs
+        self.type = equation_type
 
     def __repr__(self):
-        return self.__class__.__name__ + "(\n\tequations:" + self.equations + ")"
-
-
-class NeuronEquations(Equations):
-    """
-    This class takes care of neuron equations.
-    """
-    def __init__(self, equations, equation_type):
-        super().__init__(equations)
-
-        if equation_type == EquationType.SIMPLE:
-            self.equations_list = parse_equations(equations)
-        elif equation_type == EquationType.SPIKE:
-            self.equations_list = parse_conditions(equations)
-        elif equation_type == EquationType.RESET:
-            self.equations_list = parse_reset(equations)
-
-
-class SynapseEquations(Equations):
-    """
-    This class takes care of synapse equations.
-    """
-    def __init__(self, equations):
-        super().__init__(equations)
-        self.equations_list = parse_equations(equations)
+        return self.__class__.__name__ + "(\n\tequations:" + self.lhs + " = " + self.rhs + ")"
