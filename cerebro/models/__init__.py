@@ -1,8 +1,8 @@
-from .neuron import Neuron
-from .synapse import Synapse
-from .population import Population
-from .connection import Connection
-from .network import Network
+from cerebro.models.neuron import Neuron
+from cerebro.models.synapse import Synapse
+from cerebro.models.population import Population
+from cerebro.models.connection import Connection
+from cerebro.models.network import Network
 
 __all__ = [
     'Neuron',
