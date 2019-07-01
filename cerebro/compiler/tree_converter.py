@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import re
 import sympy
 
-from cerebro.globals import NAME_PATTERN
+from cerebro.globals import VARIABLE_NAME_PATTERN
 
 
 class Node(ABC):
@@ -108,7 +108,7 @@ class Derivative(Operator):
     """
     Class to take care of derivative nodes in AST.
     """
-    PATTERN = re.compile('d(?P<NAME>{})'.format(NAME_PATTERN))
+    PATTERN = re.compile('d(?P<NAME>{})'.format(VARIABLE_NAME_PATTERN))
 
     def __init__(self, children):
         super().__init__(children)
@@ -136,7 +136,7 @@ class Proprietorship(Operator):
     """
     Class to handle proprietorship of variables, e.g. in synapse equation(pre.r).
     """
-    PATTERN = re.compile("^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=NAME_PATTERN))
+    PATTERN = re.compile("^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=VARIABLE_NAME_PATTERN))
 
     def __init__(self, children):
         super().__init__(children)
@@ -180,7 +180,7 @@ class Numeral(Symbol):
 
 
 class Variable(Symbol):
-    PATTERN = re.compile(NAME_PATTERN)
+    PATTERN = re.compile(VARIABLE_NAME_PATTERN)
 
     def __init__(self, symbol):
         super().__init__(symbol)

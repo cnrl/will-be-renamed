@@ -1,8 +1,9 @@
 from cerebro.exceptions import IllegalArgumentException
 from cerebro.models.population import Population
 from cerebro.models.connection import Connection
+from cerebro.compiler.compiler import Compiler
 from cerebro.code_generation.api import generate
-from cerebro.models.variable import Variable
+from cerebro.compiler.parser import VariableParser
 from cerebro.models.parameter_guards import IterableGuard, InstanceGuard
 
 
@@ -33,11 +34,12 @@ class Network:
                 self.__class__.__name__ + ".connections must be an iterable of " + Connection.__class__.__name__
             )
 
-        self.variables = Variable.from_raw(variables)
+        self.variables = VariableParser.from_lines(variables)
         self.populations = populations if populations is not None else []
         self.connections = connections if connections is not None else []
 
         self.c_module = None
+        self.compiler = None
         self.id = Network._instance_count
         Network._instance_count += 1
 
@@ -48,6 +50,8 @@ class Network:
             connection.wrapper = getattr(self.c_module, 'Connection{}Wrapper'.format(connection.id))()
 
     def compile(self):
+        self.compiler = Compiler(network=self)
+        self.compiler.semantic_analyzer()
         self.c_module = generate(self.id, self.variables, self.populations, self.connections)
         self._bind_c_instances()
 

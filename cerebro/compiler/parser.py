@@ -1,90 +1,74 @@
-from sympy import sympify
-from sympy.core.symbol import Symbol
+import re
 
-from cerebro.compiler.param_extractor import equations_lexer, variables_lexer
+from cerebro.globals import VARIABLE_NAME_PATTERN, NUMERAL_PATTERN, WORD_PATTERN
 from cerebro.exceptions import ParseException
-from cerebro.globals import FORBIDDEN_CONNECTION_VAR_NAMES, FORBIDDEN_POPULATION_VAR_NAMES, RESERVED_WORDS
-from cerebro.enums import VariableContext
 
 
-def parse_variables(variables, context):
-    """
-    Parse variables argument in a neuron or synapse. It returns
-    a dictionary with name of variable as the keys. The values are dictionaries with scope,
-    init, and ctype as keys. If no scope and type is given as constraint to variable, self
-    and double will be placed, respectively.
-    Example:
-    variables=\"\"\"
-        x = 0.0 : population
-                \"\"\"
-    { 'x': {'scope': 'population', 'ctype': 'double', 'init': '0.0'}}
-    :param variables: str
-    :param context: VariableContext
-    :return: dict
-    """
-    lexed = variables_lexer(variables, context)
+class VariableParser:
+    class ParsedVariable:
+        def __init__(self, name, init, constraints):
+            self.name = name
+            self.init = init
+            self.constraints = constraints
 
-    var_names = list(lexed.keys())
-    for var_name in var_names:
-        if context == VariableContext.NEURON and var_name in FORBIDDEN_POPULATION_VAR_NAMES:
-            raise ParseException("{} is a reserved population variable name".format(var_name))
-        if context == VariableContext.SYNAPSE and var_name in FORBIDDEN_CONNECTION_VAR_NAMES:
-            raise ParseException("{} is a reserved connection variable name".format(var_name))
-        if var_name in RESERVED_WORDS:
-            raise ParseException("{} is a reserved core word".format(var_name))
+    VARIABLE_DEFINITION_PATTERN = re.compile(
+        "^\s*(?P<NAME>{})\s*=\s*(?P<INIT>{})\s*(:\s*(?P<CONSTRAINTS>{})\s*)?$".format(
+            VARIABLE_NAME_PATTERN, NUMERAL_PATTERN, WORD_PATTERN
+        )
+    )
 
-    return lexed
+    @staticmethod
+    def parse(definition):
+        matched = VariableParser.VARIABLE_DEFINITION_PATTERN.match(definition)
 
+        if matched is None:
+            raise ParseException("invalid variable definition: {}".format(definition))
 
-def parse_equations(equations):
-    """
-    Parse equations argument in a neuron or synapse. It returns a list of dictionaries
-    with keys lhs_parsed, rhs_parsed, is_ode, constraints, and equation_parsed.
-    :param equations: str
-    :return: list
-    """
-    equations = equations_lexer(equations)
+        groups = matched.groupdict()
 
-    eqs = []
+        return VariableParser.ParsedVariable(
+            name=groups["NAME"], init=groups["INIT"], constraints=groups.get("CONSTRAINTS", list())
+        )
 
-    for eq in equations:
-        rhs = eq["rhs"].replace("pre.", "_pre_").replace("post.", "_post_")
-        lhs = eq["lhs"]
-
-        try:
-            rhs = sympify(rhs, evaluate=False)
-            lhs = Symbol(lhs)
-        except Exception:
-            raise ParseException("Invalid syntax for equation")
-
-        eqs.append({"lhs_parsed": lhs, "rhs_parsed": rhs, "ode": eq["ode"]})
-
-    return eqs
+    @staticmethod
+    def from_lines(definitions):
+        return [
+            VariableParser.parse(definition) for definition in definitions.split('\n') if definition.strip()
+        ]
 
 
-def parse_reset(equations):
-    """
-        Parse reset argument in a neuron. It returns a list of dictionaries with
-        keys lhs_parsed, rhs_parsed, is_ode, constraints, and equation_parsed.
-        It can not be and ODE!
-        :param equations: str
-        :return: list
-        """
-    eqs = parse_equations(equations)
-    for eq in eqs:
-        if eq["ode"]:
-            raise ParseException("Reset equation can not be an ODE")
+class EquationParser:
+    class ParsedEquation:
+        def __init__(self, variable, expression, equation_type):
+            self.variable = variable
+            self.expression = expression
+            self.equation_type = equation_type
 
-    return eqs
+    ODE_PATTERN = re.compile(
+        "^\s*d(?P<NAME>{})\s*\/\s*dt\s*=\s*(?P<RHS>.+)\s*$".format(VARIABLE_NAME_PATTERN)
+    )
 
+    SIMPLE_PATTERN = re.compile(
+        "^\s*(?P<NAME>{})\s*=\s*(?P<RHS>.+)\s*$".format(VARIABLE_NAME_PATTERN)
+    )
 
-def parse_condition(conditions):
-    """
-        Parse the input string for spike argument in a neuron.
-        :param conditions: str
-        :return: list
-        """
-    try:
-        return sympify(conditions, evaluate=False)
-    except Exception:
-        raise ParseException("Invalid syntax for spike conditions")
+    @staticmethod
+    def parse(equation):
+        matched = EquationParser.ODE_PATTERN.match(equation)
+        equation_type = 'ode' if matched is not None else 'simple'
+        if matched is None:
+            matched = EquationParser.SIMPLE_PATTERN.match(equation)
+
+        if matched is None:
+            raise ParseException('invalid equation')
+        groups = matched.groupdict()
+
+        return EquationParser.ParsedEquation(
+            variable=groups['NAME'], expression=groups['RHS'], equation_type=equation_type
+        )
+
+    @staticmethod
+    def from_lines(equations):
+        return [
+            EquationParser.parse(equation) for equation in equations.split('\n') if equation.strip()
+        ]

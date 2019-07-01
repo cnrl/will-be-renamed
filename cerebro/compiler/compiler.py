@@ -9,6 +9,7 @@ from copy import deepcopy
 
 import sympy
 
+
 class VariableSpec:
     def __init__(self, name, init, type, variability, scope):
         self.name = name

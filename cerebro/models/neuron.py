@@ -1,6 +1,4 @@
-from cerebro.models.equation import Equation
-from cerebro.models.variable import Variable
-from cerebro.compiler.parser import parse_condition
+from cerebro.compiler.parser import VariableParser, EquationParser
 from cerebro.models.parameter_guards import InstanceGuard
 from cerebro.exceptions import IllegalArgumentException
 
@@ -30,10 +28,10 @@ class Neuron:
         if not InstanceGuard(str).is_valid(reset):
             raise IllegalArgumentException(self.__class__.__name__ + ".reset must be an string")
 
-        self.variables = Variable.from_raw(variables)
-        self.equations = Equation.from_raw(equations)
-        self.spike = parse_condition(spike)
-        self.reset = Equation.from_raw(reset)
+        self.variables = VariableParser.from_lines(variables)
+        self.equations = EquationParser.from_lines(equations)
+        self.spike = spike
+        self.reset = EquationParser.from_lines(reset)
 
     def __repr__(self):
         return self.__class__.__name__ + """(
