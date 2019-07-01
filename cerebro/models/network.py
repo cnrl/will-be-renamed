@@ -58,3 +58,6 @@ class Network:
     def simulate(self, duration, dt):
         self.c_module.initialize(dt)
         self.c_module.run(duration / self.c_module.get_dt())
+
+    def __hash__(self):
+        return self.id

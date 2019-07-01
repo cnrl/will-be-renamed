@@ -44,3 +44,6 @@ class Population:
             raise AttributeError('object {} has no attribute \'{}\''.format(self.__class__.__name, item))
 
         return getattr(self.wrapper, 'get_{}'.format(item))()
+
+    def __hash__(self):
+        return self.id

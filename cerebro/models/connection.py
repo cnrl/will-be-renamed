@@ -52,3 +52,6 @@ class Connection:
         if item.startswith('set'):
             return getattr(self.wrapper, item)
         return getattr(self.wrapper, 'get_{}'.format(item))()
+
+    def __hash__(self):
+        return self.id

@@ -52,15 +52,16 @@ class Node(ABC):
 
         raise Exception('Internal Error: Unknown node type')
 
-
     def traverse(self, func, **func_kwargs):
         ret = [child.traverse(func, func_kwargs) for child in self.children] if hasattr(self, 'children') else []
         return func(self, ret, func_kwargs)
+
 
 class Operator(Node, ABC):
     """
     Class to take care of operator nodes in AST.
     """
+
     def __init__(self, children):
         super().__init__()
         self.children = children
@@ -74,6 +75,7 @@ class Mul(Operator):
     """
     Class to take care of multiplication operator nodes in AST.
     """
+
     def __init__(self, children):
         super().__init__(children)
 
@@ -85,6 +87,7 @@ class Add(Operator):
     """
     Class to take care of addition operator nodes in AST.
     """
+
     def __init__(self, children):
         super().__init__(children)
 
@@ -96,6 +99,7 @@ class Pow(Operator):
     """
     Class to take care of power operator nodes in AST.
     """
+
     def __init__(self, children):
         super().__init__(children)
 
@@ -136,7 +140,8 @@ class Proprietorship(Operator):
     """
     Class to handle proprietorship of variables, e.g. in synapse equation(pre.r).
     """
-    PATTERN = re.compile("^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=VARIABLE_NAME_PATTERN))
+    PATTERN = re.compile(
+        "^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=VARIABLE_NAME_PATTERN))
 
     def __init__(self, children):
         super().__init__(children)

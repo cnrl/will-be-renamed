@@ -1,29 +1,28 @@
+from cerebro.exceptions import InternalException
 
 
 class SymbolTable:
     def __init__(self):
-        self.table = []
-        self.contexts = []
+        self.scopes = []
 
-    def enter_scope(self, context=None):
-        self.table.append({})
-        self.contexts.append(context)
+    def enter_scope(self):
+        self.scopes.append({})
 
-    def add_variable(self, name, spec):
-        self.table[-1][name] = spec
+    def define(self, name, spec):
+        try:
+            self.scopes[-1][name] = spec
+        except IndexError:
+            raise InternalException("no scope to define the variable in")
 
     def exit_scope(self):
-        self.table.pop(-1)
-        self.contexts.pop(-1)
+        try:
+            self.scopes.pop()
+        except IndexError:
+            raise InternalException("no scope to exit from")
 
-    def is_defined(self, name):
-        pass
+    def get(self, name):
+        for scope in reversed(self.scopes):
+            if name in scope:
+                return scope[name]
 
-    def get_spec(self):
-        pass
-
-    def get_scope(self):
-        pass
-
-
-
+        return None

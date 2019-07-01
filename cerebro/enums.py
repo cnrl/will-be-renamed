@@ -13,6 +13,7 @@ class VariableContext(Enum):
     SYNAPSE = "synapse"
     NETWORK = "network"
 
+
 class EquationContext(Enum):
     NEURON = "neuron"
     SYNAPSE = "synapse"
