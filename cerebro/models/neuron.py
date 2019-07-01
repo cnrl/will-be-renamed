@@ -1,6 +1,6 @@
 from cerebro.models.equations import Equation
 from cerebro.models.variables import Variable
-from cerebro.parser.parser import parse_condition
+from cerebro.compiler.parser import parse_condition
 
 
 class Neuron:

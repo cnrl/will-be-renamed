@@ -1,7 +1,7 @@
 from sympy import sympify
 from sympy.core.symbol import Symbol
 
-from cerebro.parser.param_extractor import equations_lexer, variables_lexer
+from cerebro.compiler.param_extractor import equations_lexer, variables_lexer
 from cerebro.exceptions import ParseException
 from cerebro.globals import FORBIDDEN_CONNECTION_VAR_NAMES, FORBIDDEN_POPULATION_VAR_NAMES, RESERVED_WORDS
 from cerebro.enums import VariableContext

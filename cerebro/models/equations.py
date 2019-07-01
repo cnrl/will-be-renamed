@@ -1,4 +1,4 @@
-from cerebro.parser.parser import equations_lexer
+from cerebro.compiler.parser import equations_lexer
 
 
 class Equation:

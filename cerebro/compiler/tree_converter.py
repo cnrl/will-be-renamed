@@ -15,45 +15,47 @@ class Node(ABC):
     def __init__(self):
         pass
 
-    @staticmethod
-    def extract(sympy_object, **kwargs):
+    @classmethod
+    def extract(cls, sympy_object, symtable):
         """
         Extract type of AST node.
+        :param cls:
         :param sympy_object:
-        :param kwargs:
+        :param symtable:
         :return:
         """
-        is_variable = kwargs.get('is_variable')
-        if is_variable is None:
-            raise Exception('Internal Error: Node.extract should have is_variable method in kwargs')
 
         if isinstance(sympy_object, sympy.Mul):
-            return Mul.extract(sympy_object, **kwargs)
+            return Mul.extract(sympy_object, symtable)
 
         if isinstance(sympy_object, sympy.Add):
-            return Add.extract(sympy_object, **kwargs)
+            return Add.extract(sympy_object, symtable)
 
         if isinstance(sympy_object, sympy.Pow):
-            return Pow.extract(sympy_object, **kwargs)
+            return Pow.extract(sympy_object, symtable)
 
         if isinstance(sympy_object, sympy.Number):
-            return Numeral.extract(sympy_object, **kwargs)
+            return Numeral.extract(sympy_object, symtable)
 
         if not sympy_object.is_symbol:
             print(sympy_object, type(sympy_object))
             raise Exception('Internal Error: Unknown node type')
 
         if Proprietorship.match(sympy_object):
-            return Proprietorship.extract(sympy_object)
+            return Proprietorship.extract(sympy_object, symtable)
 
-        if Derivative.match(sympy_object, is_variable):
-            return Derivative.extract(sympy_object, **kwargs)
+        if Derivative.match(sympy_object, symtable):
+            return Derivative.extract(sympy_object, symtable)
 
         if Variable.match(sympy_object):
-            return Variable.extract(sympy_object)
+            return Variable.extract(sympy_object, symtable)
 
         raise Exception('Internal Error: Unknown node type')
 
+
+    def traverse(self, func, **func_kwargs):
+        ret = [child.traverse(func, func_kwargs) for child in self.children] if hasattr(self, 'children') else []
+        return func(self, ret, func_kwargs)
 
 class Operator(Node, ABC):
     """
@@ -64,8 +66,8 @@ class Operator(Node, ABC):
         self.children = children
 
     @classmethod
-    def extract(cls, sympy_object, **kwargs):
-        return cls([Node.extract(arg, **kwargs) for arg in sympy_object.args])
+    def extract(cls, sympy_object, symtable):
+        return cls([Node.extract(arg, symtable) for arg in sympy_object.args])
 
 
 class Mul(Operator):
@@ -112,21 +114,18 @@ class Derivative(Operator):
         super().__init__(children)
 
     @staticmethod
-    def match(sympy_symbol, is_variable):
+    def match(sympy_symbol, symtable):
         matched = Derivative.PATTERN.match(str(sympy_symbol))
-        return matched if matched is not None and is_variable(matched.groupdict().get('NAME')) else None
+        return matched if matched is not None and symtable.is_defined(matched.groupdict().get('NAME')) else None
 
-    @staticmethod
-    def extract(sympy_object, **kwargs):
-        is_variable = kwargs.get('is_variable')
-        if is_variable is None:
-            raise Exception('Internal Error: Node.extract should have is_variable method in kwargs')
-        matched = Derivative.match(sympy_object, is_variable)
+    @classmethod
+    def extract(cls, sympy_object, symtable):
+        matched = Derivative.match(sympy_object, symtable)
 
         if matched is None:
             raise Exception('Internal Error: sympy_object is not a derivative of a variable')
         symbol = sympy.Symbol(matched.groupdict().get('NAME'))
-        return Derivative([Variable.extract(symbol, **kwargs)])
+        return Derivative([Variable.extract(symbol, symtable)])
 
     def __repr__(self):
         derived = self.children[0]
@@ -146,8 +145,8 @@ class Proprietorship(Operator):
     def match(sympy_symbol):
         return Proprietorship.PATTERN.match(str(sympy_symbol))
 
-    @staticmethod
-    def extract(sympy_object, **kwargs):
+    @classmethod
+    def extract(cls, sympy_object, symtable):
         matched = Proprietorship.match(sympy_object)
         if matched is None:
             raise Exception('Internal Error: sympy_object is not a proprietorship')
@@ -155,7 +154,7 @@ class Proprietorship(Operator):
         groups = matched.groupdict()
         owner = groups.get('OWNER')
         name = sympy.Symbol(groups.get('NAME'))
-        return Proprietorship([owner, Variable(name)])
+        return cls([owner, Variable(name)])
 
     def __repr__(self):
         owner, name = self.children
@@ -168,7 +167,7 @@ class Symbol(Node, ABC):
         self.symbol = symbol
 
     @classmethod
-    def extract(cls, sympy_object, **kwargs):
+    def extract(cls, sympy_object, symtable):
         return cls(sympy_object)
 
     def __repr__(self):

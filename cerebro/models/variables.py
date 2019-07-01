@@ -1,5 +1,5 @@
 from cerebro.exceptions import IllegalArgumentException
-from cerebro.parser.parser import variables_lexer
+from cerebro.compiler.parser import variables_lexer
 from cerebro.globals import SYNAPSE_INTERNAL_VARIABLES, NEURON_INTERNAL_VARIABLES
 from cerebro.enums import VariableContext
 
