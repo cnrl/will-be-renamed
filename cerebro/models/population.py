@@ -46,4 +46,4 @@ class Population:
         return getattr(self.wrapper, 'get_{}'.format(item))()
 
     def __hash__(self):
-        return self.id
+        return 'population.{}'.format(self.id)

@@ -6,30 +6,11 @@ FORBIDDEN_VARIABLE_NAMES = {
     VariableContext.NETWORK: set()
 }
 
+INTERNAL_VARIABLES = {'t', 'g_exc'}
+
 # TODO: complete list below
 RESERVED_WORDS = {'population', 'connection', 'neuron', 'synapse', 'spike', 'reset', 'const', 'int', 'double', 'float'}
 
-
-NEURON_INTERNAL_VARIABLES = {
-    'r': {
-        'scope': 'self',
-        'init': 0,
-        'ctype': 'double'
-    },
-    'g_exc': {
-        'scope': 'self',
-        'init': 0,
-        'ctype': 'double'
-    },
-}
-
-SYNAPSE_INTERNAL_VARIABLES = {
-    'w': {
-        'scope': 'self',
-        'init': 1,
-        'ctype': 'double'
-    }
-}
 
 PACKAGE_NAME = 'Cerebro'
 

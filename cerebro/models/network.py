@@ -52,6 +52,7 @@ class Network:
     def compile(self):
         self.compiler = Compiler(network=self)
         self.compiler.semantic_analyzer()
+        self.compiler.code_gen()
         #self.c_module = generate(self.id, self.variables, self.populations, self.connections)
         #self._bind_c_instances()
 
@@ -60,4 +61,4 @@ class Network:
         self.c_module.run(duration / self.c_module.get_dt())
 
     def __hash__(self):
-        return self.id
+        return 'network.{}'.format(self.id)

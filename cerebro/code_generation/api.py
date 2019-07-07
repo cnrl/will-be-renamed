@@ -5,63 +5,126 @@ from jinja2 import FileSystemLoader, Environment
 from sympy import Symbol
 
 from cerebro.exceptions import IllegalStateException
+from cerebro.enums import VariableScope
 
+class CodeGeneration:
+    def __init__(self, network, populations, connections, population_variable_specs, connection_variable_specs,
+                 population_equations, population_reset_equations, population_spike_condition, connection_equations):
+        self.network = network
+        self.populations = populations
+        self.connections = connections
+        self.population_variable_specs = population_variable_specs
+        self.connection_variable_specs = connection_variable_specs
+        self.population_equations = population_equations
+        self.population_reset_equations = population_reset_equations
+        self.population_spike_condition = population_spike_condition
+        self.connection_equations = connection_equations
+        self.base_path = self.create_dirs()
 
-# generates cpp code, compiles it and returns dynamically loaded module
-def generate(net_id, variables, populations, connections):
-    # TODO handle variables
-    base_path = _create_dirs(net_id)
+        current_dir_path = os.path.dirname(os.path.abspath(__file__))
+        file_loader = FileSystemLoader(os.path.join(current_dir_path, 'templates'))
+        self.template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
 
-    _generate_files(base_path, populations, connections)
+    def generate(self):
+        self.generate_files()
+        self.compile_files()
+        return self.load_module()
 
-    _compile_files(base_path)
+    def compile_files(self):
+        os.chdir(self.base_path)
+        return_code = os.system('make')
+        if return_code:
+            raise RuntimeError('make process failed')
 
-    return _load_module(net_id)
+    def generate_files(self):
+        self.generate_cpp_codes()
+        self.generate_make_file()
 
+    def generate_cpp_codes(self):
+        self.generate_core()
+        self.generate_populations()
+        self.generate_connections()
+        self.generate_wrapper()
 
-def _create_dirs(net_id):
-    cwd = os.getcwd()
+    def generate_core(self):
+        for template_name in ['core.h', 'core.cpp']:
+            template = self.template_env.get_template(template_name)
+            rendered = template.render(populations=self.populations, connections=self.connections)
 
-    dir_path = os.path.join(cwd, 'build')
+            full_path = os.path.join(self.base_path, template_name)
+            file = open(full_path, "w+")
 
-    if not os.path.exists(dir_path):
-        os.mkdir(dir_path)
+            file.write(rendered)
 
-    base_path = os.path.join(dir_path, 'net' + str(net_id))
-    if os.path.exists(base_path):
-        raise IllegalStateException("directory {} already exists".format(base_path))
-    os.mkdir(base_path)
-    return base_path
+            file.close()
 
+    def generate_populations(self):
+        template = self.template_env.get_template('population.hpp')
 
-def _generate_files(base_path, populations, connections):
-    current_dir_path = os.path.dirname(os.path.abspath(__file__))
+        for population in self.populations:
+            update_equations = self.population_equations[population]
+            spike_condition = self.population_spike_condition[population]
+            reset_equations = self.population_reset_equations[population]
 
-    file_loader = FileSystemLoader(os.path.join(current_dir_path, 'templates'))
-    template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
+            rendered = template.render(
+                population_id=population.id,
+                variables=self.population_variable_specs[population],
+                update_equations=update_equations,
+                spike_condition=spike_condition,
+                reset_equations=reset_equations
+            )
 
-    _generate_cpp_codes(base_path, template_env, populations, connections)
-    _generate_make_file(base_path, template_env)
+            full_path = os.path.join(self.base_path, 'population{}.hpp'.format(population.id))
+            file = open(full_path, "w+")
 
+            file.write(rendered)
 
-def _generate_cpp_codes(base_path, template_env, populations, connections):
-    _generate_core(base_path, template_env, populations, connections)
-    _generate_populations(base_path, template_env, populations)
-    _generate_connections(base_path, template_env, connections)
-    _generate_wrapper(base_path, template_env, populations, connections)
+            file.close()
 
+    def generate_connections(self):
+        template = self.template_env.get_template('connection.hpp')
 
-def _generate_core(base_path, template_env, populations, connections):
-    for template_name in ['core.h', 'core.cpp']:
-        template = template_env.get_template(template_name)
-        rendered = template.render(populations=populations, connections=connections)
+        for connection in self.connections:
+            update_equations = _generate_connection_update_equations(connection)
+            rendered = template.render(connection=connection, update_equations=update_equations)
+            full_path = os.path.join(self.base_path, 'connection{}.hpp'.format(connection.id))
 
-        full_path = os.path.join(base_path, template_name)
+            file = open(full_path, "w+")
+
+            file.write(rendered)
+
+            file.close()
+
+    def generate_wrapper(self):
+        template = self.template_env.get_template('wrapper.pyx')
+
+        rendered = template.render(populations=self.populations, connections=self.connections)
+
+        full_path = os.path.join(self.base_path, 'wrapper.pyx')
         file = open(full_path, "w+")
 
         file.write(rendered)
 
         file.close()
+
+    def load_module(self):
+        return importlib.import_module('build.net{}.wrapper'.format(self.network.id))
+
+    def create_dirs(self):
+        cwd = os.getcwd()
+
+        dir_path = os.path.join(cwd, 'build')
+
+        if not os.path.exists(dir_path):
+            os.mkdir(dir_path)
+
+        base_path = os.path.join(dir_path, 'net' + str(self.network.id))
+        if os.path.exists(base_path):
+            raise IllegalStateException("directory {} already exists".format(base_path))
+        os.mkdir(base_path)
+        return base_path
+
+
 
 
 def _is_variable_population_dependent(variable):
@@ -101,6 +164,7 @@ def _generate_population_update_equations(population):
         update_equations.append((str(lhs), rhs))
 
     return update_equations
+
 
 
 def _generate_spike_conditions(population):
@@ -155,55 +219,8 @@ def _generate_connection_update_equations(connection):
     return update_equations
 
 
-def _generate_populations(base_path, template_env, populations):
-    template = template_env.get_template('population.hpp')
-
-    for population in populations:
-        update_equations = _generate_population_update_equations(population)
-        spike_condition = _generate_spike_conditions(population) if population.neuron.spike is not None else None
-        reset_equations = _generate_reset_equations(population)
-
-        rendered = template.render(
-            population=population,
-            update_equations=update_equations,
-            spike_condition=spike_condition,
-            reset_equations=reset_equations
-        )
-
-        full_path = os.path.join(base_path, 'population{}.hpp'.format(population.id))
-        file = open(full_path, "w+")
-
-        file.write(rendered)
-
-        file.close()
 
 
-def _generate_connections(base_path, template_env, connections):
-    template = template_env.get_template('connection.hpp')
-
-    for connection in connections:
-        update_equations = _generate_connection_update_equations(connection)
-        rendered = template.render(connection=connection, update_equations=update_equations)
-        full_path = os.path.join(base_path, 'connection{}.hpp'.format(connection.id))
-
-        file = open(full_path, "w+")
-
-        file.write(rendered)
-
-        file.close()
-
-
-def _generate_wrapper(base_path, template_env, populations, connections):
-    template = template_env.get_template('wrapper.pyx')
-
-    rendered = template.render(populations=populations, connections=connections)
-
-    full_path = os.path.join(base_path, 'wrapper.pyx')
-    file = open(full_path, "w+")
-
-    file.write(rendered)
-
-    file.close()
 
 
 def _generate_make_file(base_path, template_env):
@@ -221,14 +238,3 @@ def _generate_make_file(base_path, template_env):
     file.write(rendered)
 
     file.close()
-
-
-def _compile_files(base_path):
-    os.chdir(base_path)
-    return_code = os.system('make')
-    if return_code:
-        raise RuntimeError('make process failed')
-
-
-def _load_module(net_id):
-    return importlib.import_module('build.net{}.wrapper'.format(net_id))

@@ -5,7 +5,7 @@
 extern double dt;
 extern long int t;
 
-struct Population{{ population.id }} {
+struct Population{{ population_id }} {
 
     int size;
 
@@ -15,19 +15,19 @@ struct Population{{ population.id }} {
     std::vector<long int> last_spike;
     std::vector<int> spiked;
 
-    {% for var_name, var in population.neuron.variables.vars.items() %}
-    {% if var.scope == 'population'%}
-    double {{ var_name }};
-    {% elif var.scope == 'self'%}
-    std::vector< double > {{ var_name }};
+    {% for variable in variables %}
+    {% if variable.scope == 'shared'%}
+    {{ variable.c_type }} {{ variable.name }};
+    {% elif var.scope == 'local'%}
+    std::vector< {{ variable.c_type }} > {{ var_name }};
     {% endif %}
     {% endfor %}
 
-    {% for var_name, var in population.neuron.variables.vars.items() %}
-    {% if var.scope == 'population'%}
-    std::vector<double> {{ var_name }}_history;
-    {% elif var.scope == 'self'%}
-    std::vector<std::vector< double > >{{ var_name }}_history;
+    {% for variable in variables %}
+    {% if var.scope == 'shared'%}
+    std::vector<{{ variable.c_type }}> {{ variable.name }}_history;
+    {% elif var.scope == 'local'%}
+    std::vector<std::vector< {{ variable.c_type }} > >{{ var_name }}_history;
     {% endif %}
 
     {% endfor %}
@@ -42,38 +42,38 @@ struct Population{{ population.id }} {
         }
     };
 
-    {% for var_name, var in population.neuron.variables.vars.items() %}
-    {% if var.scope == 'population'%}
-    double get_{{ var_name }}() { return {{ var_name }}; }
-    void set_{{ var_name }}(double _{{ var_name }}) { {{ var_name }} = _{{ var_name }}; }
+    {% for variable in variables %}
+    {% if variable.scope == 'shared'%}
+    {{ variable.c_type }} get_{{ variable.name }}() { return {{ variable.name }}; }
+    void set_{{ variable.name }}({{ variable.c_type }} _{{ variable.name }}) { {{ variable.name }} = _{{ variable.name }}; }
 
-    {% elif var.scope == 'self'%}
-    std::vector< double > get_{{ var_name }}() { return {{ var_name }}; }
-    double get_single_{{ var_name }}(int rank) { return {{ var_name }}[rank]; }
-    void set_{{ var_name }}(std::vector< double > _{{ var_name }}) { {{ var_name }} = _{{ var_name }}; }
-    void set_single_{{ var_name }}(int rank, double _{{ var_name }}) { {{ var_name }}[rank] = _{{ var_name }}; }
-
-    {% endif %}
-    {% endfor %}
-
-  {% for var_name, var in population.neuron.variables.vars.items() %}
-    {% if var.scope == 'population'%}
-    std::vector<double> get_{{ var_name }}_history() { return {{ var_name }}_history; }
-
-    {% elif var.scope == 'self'%}
-    std::vector< std::vector<double> > get_{{ var_name }}_history() { return {{ var_name }}_history; }
+    {% elif variable.scope == 'local'%}
+    std::vector< {{ variable.c_type }} > get_{{ variable.name }}() { return {{ variable.name }}; }
+    double get_single_{{ variable.name }}(int rank) { return {{ variable.name }}[rank]; }
+    void set_{{ variable.name }}(std::vector< {{ variable.c_type }} > _{{ variable.name }}) { {{ variable.name }} = _{{ variable.name }}; }
+    void set_single_{{ variable.name }}(int rank, {{ variable.c_type }} _{{ variable.name }}) { {{ variable.name }}[rank] = _{{ variable.name }}; }
 
     {% endif %}
     {% endfor %}
+
+  {% for variable in variables %}
+    {% if var.scope == 'shared'%}
+    std::vector<{{ variable.c_type }} > get_{{ variable.name }}_history() { return {{ variable.name }}_history; }
+
+    {% elif var.scope == 'local'%}
+    std::vector< std::vector<{{ variable.c_type }}> > get_{{ variable.name }}_history() { return {{ variable.name }}_history; }
+
+    {% endif %}
+  {% endfor %}
 
 
     void init_population() {
 
-        {% for var_name, var in population.neuron.variables.vars.items() %}
-        {% if var.scope == 'population'%}
-        {{ var_name }} = {{ var.init }};
-        {% elif var.scope == 'self'%}
-        {{ var_name }} = std::vector<double>(size, {{ var.init }});
+        {% for variable in variables %}
+        {% if var.scope == 'shared'%}
+        {{ variable.name }} = {{ variable.init }};
+        {% elif variable.scope == 'local'%}
+        {{ variable.name }} = std::vector<{{ variable.c_type }} >(size, {{ variable.init }});
         {% endif %}
         {% endfor %}
 
@@ -89,12 +89,16 @@ struct Population{{ population.id }} {
         spiked.clear();
 
         for(int i = 0; i < size; i++) {
-            {% for var, equation in update_equations %}
-            double _{{ var }} = {{ equation }};
-            {% endfor %}
 
-            {% for var, _ in update_equations %}
-            {{ var }}[i] += dt * _{{ var }};
+            // TODO: ODE
+            {% for equation in update_equations %}
+                {% if equation.equation_type == 'simple' %}
+                    {% if equation.variable.scope == 'local' %}
+            {{ equation.variable }}[i] = {{ equation.expression }};
+                    {% else %}
+            {{ equation.variable }} = {{ equation.expression }};
+                {% endif %}
+                {% endif %}
             {% endfor %}
 
 
@@ -102,10 +106,14 @@ struct Population{{ population.id }} {
 
             {% if spike_condition %}
             if({{ spike_condition }}) {
-                {% for reset_equation in reset_equations%}
-                {{ reset_equation}};
-
+                {% for equation in update_equations %}
+                    {% if equation.variable.scope == 'local' %}
+                {{ equation.variable }}[i] = {{ equation.expression }};
+                    {% else %}
+                {{ equation.variable }} = {{ equation.expression }};
+                    {% endif %}
                 {% endfor %}
+
                 spiked.push_back(i);
                 last_spike[i] = t;
 
@@ -123,8 +131,8 @@ struct Population{{ population.id }} {
             }
         }
         
-        {% for var_name, var in population.neuron.variables.vars.items() %}
-        {{ var_name }}_history.push_back({{ var_name }});
+        {% for variable in variables %}
+        {{ variable.name }}_history.push_back({{ variable.name }});
 
         {% endfor %}
     }

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import deepcopy
 import sympy
 
@@ -5,7 +6,8 @@ from .symbol_table import SymbolTable
 from cerebro.globals import ACCEPTABLE_CONSTRAINTS
 from cerebro.exceptions import ParseException, SemanticException
 from cerebro.enums import VariableScope, VariableContext, EquationContext, VariableVariability
-from cerebro.globals import FORBIDDEN_VARIABLE_NAMES, RESERVED_WORDS, ACCEPTABLE_PROPRIETOR
+from cerebro.globals import FORBIDDEN_VARIABLE_NAMES, RESERVED_WORDS, ACCEPTABLE_PROPRIETOR, INTERNAL_VARIABLES
+from cerebro.code_generation.api import CodeGeneration
 from .tree_converter import Node, Variable, Derivative, Proprietorship
 
 
@@ -13,9 +15,16 @@ class Compiler:
     def __init__(self, network):
         self.network = network
         self.symtable = SymbolTable()
+        self.network_variable_specs = []
+        self.population_variable_specs = defaultdict(list)
+        self.connection_variable_specs = defaultdict(list)
+        self.population_equations = defaultdict(list)
+        self.population_reset_equations = defaultdict(list)
+        self.population_spike_condition = {}
+
+        self.connection_equations = defaultdict(list)
+
         self.population_symbol_tables = {}
-        self.population_equations = {}
-        self.connection_equations = {}
 
     def _network_variables_semantic_analyzer(self):
         network_variable_specs = [
@@ -28,6 +37,7 @@ class Compiler:
                 raise ParseException('Network variables cannot have {} scope'.format(VariableScope.SHARED))
 
             self.symtable.define(variable_spec.name, variable_spec)
+            self.network_variable_specs.append(variable_spec)
 
     def _population_semantic_analyzer(self, population):
         population_variable_specs = [
@@ -38,17 +48,21 @@ class Compiler:
 
         for variable_spec in population_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
+            self.population_variable_specs[population].append(variable_spec)
 
         for parsed_equation in population.neuron.equations:
             equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
             equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
+            self.population_equations[population].append(equation)
 
         spike_expression = Compiler.NeuronExpression.from_parsed(population.neuron.spike, self.symtable)
         spike_expression.semantic_analyzer(self.symtable)
+        self.population_spike_condition[population] = spike_expression
 
         for parsed_equation in population.neuron.reset:
             equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
             equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
+            self.population_reset_equations[population].append(equation)
 
         self.population_symbol_tables[population] = deepcopy(self.symtable)
 
@@ -64,6 +78,7 @@ class Compiler:
 
         for variable_spec in connection_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
+            self.connection_variable_specs[connection].append(variable_spec)
 
         for parsed_equation in connection.synapse.equations:
             equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.SYNAPSE, self.symtable)
@@ -72,6 +87,7 @@ class Compiler:
                                            'pre': self.population_symbol_tables[connection.pre],
                                            'post': self.population_symbol_tables[connection.post]
                                        })
+            self.connection_equations[connection].append(equation)
 
         self.symtable.exit_scope()
 
@@ -84,8 +100,11 @@ class Compiler:
         for connection in self.network.connections:
             self._connection_semantic_analyzer(connection)
 
-    def parse_equation(self, equation, context):
-        pass
+    def code_gen(self):
+        return CodeGeneration(self.network, self.network.populations, self.network.connections,
+                              self.population_variable_specs, self.connection_variable_specs,
+                              self.population_equations, self.population_reset_equations,
+                              self.population_spike_condition, self.connection_equations).generate()
 
     def parse_expression(self, expression, context, symtable):
         if context == EquationContext.SYNAPSE:
@@ -189,11 +208,18 @@ class Compiler:
         def from_parsed(cls, expression, symbol_table):
             return cls(Node.extract(sympy.sympify(expression), symbol_table))
 
+        def __str__(self):
+            return repr(self)
+
+        def __repr__(self):
+            return repr(self.tree)
+
     class NeuronExpression(Expression):
         def semantic_analyzer(self, symbol_table):
             def is_defined(node, parent, children, **kwargs):
                 sym_table = kwargs.get('symbol_table')
-                if isinstance(node, Variable) and sym_table.get(str(node.symbol)) is None:
+                if isinstance(node, Variable) and sym_table.get(str(node.symbol)) is None and \
+                                str(node.symbol) not in INTERNAL_VARIABLES:
                     raise SemanticException("Variable {} is not defined in this scope.".format(node.symbol))
 
             self.tree.traverse(None, is_defined, symbol_table=symbol_table)
@@ -205,10 +231,11 @@ class Compiler:
                 proprietor_symbol_tables = kwargs.get('proprietor_symtables')
                 if isinstance(node, Variable):
                     if not isinstance(parent, Proprietorship):
-                        if sym_table.get(str(node.symbol)) is None:
+                        if sym_table.get(str(node.symbol)) is None and str(node.symbol) not in INTERNAL_VARIABLES:
                             raise SemanticException("Variable {} is not defined in this scope.".format(node.symbol))
                     else:
-                        if proprietor_symbol_tables[parent.owner].get(str(node.symbol)) is None:
+                        if proprietor_symbol_tables[parent.owner].get(str(node.symbol)) is None and \
+                                str(node.symbol) not in INTERNAL_VARIABLES:
                             raise SemanticException("Variable {} is not defined in {} population scope.".format(
                                 node.symbol, parent.owner
                             ))

@@ -4,6 +4,7 @@ import re
 import sympy
 
 from cerebro.globals import VARIABLE_NAME_PATTERN
+from cerebro.enums import VariableScope
 
 
 class Node(ABC):
@@ -95,6 +96,9 @@ class BinaryOperator(Operator):
     def extract(cls, sympy_object, symtable):
         op = BinaryOperator.OP_MAP[type(sympy_object)]
         return cls([Node.extract(arg, symtable) for arg in sympy_object.args], op)
+
+    def __repr__(self):
+        return '({})'.format(self.op.join([repr(child) for child in self.children]))
 
 
 class Mul(Operator):
@@ -214,9 +218,21 @@ class Numeral(Symbol):
 class Variable(Symbol):
     PATTERN = re.compile(VARIABLE_NAME_PATTERN)
 
-    def __init__(self, symbol):
+    def __init__(self, symbol, scope):
         super().__init__(symbol)
+        self.scope = scope
 
     @staticmethod
     def match(sympy_symbol):
         return Variable.PATTERN.match(str(sympy_symbol))
+
+    @classmethod
+    def extract(cls, sympy_object, symtable):
+        return cls(sympy_object, symtable.get(str(sympy_object)).scope)
+
+    def __repr__(self):
+        super_repr = str(super().__repr__())
+        if self.scope == VariableScope.SHARED:
+            return super_repr
+        else:
+            return super_repr + '[i]'
