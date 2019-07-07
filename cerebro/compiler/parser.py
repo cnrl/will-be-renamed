@@ -12,7 +12,7 @@ class VariableParser:
             self.constraints = constraints
 
     VARIABLE_DEFINITION_PATTERN = re.compile(
-        "^\s*(?P<NAME>{})\s*=\s*(?P<INIT>{})\s*(:\s*(?P<CONSTRAINTS>{})\s*)?$".format(
+        "^\s*(?P<NAME>{})\s*=\s*(?P<INIT>{})\s*(:\s*(?P<CONSTRAINTS>({}\s*)*)\s*)?$".format(
             VARIABLE_NAME_PATTERN, NUMERAL_PATTERN, WORD_PATTERN
         )
     )
@@ -25,9 +25,10 @@ class VariableParser:
             raise ParseException("invalid variable definition: {}".format(definition))
 
         groups = matched.groupdict()
+        constraints = (groups.get('CONSTRAINTS') or '').split()
 
         return VariableParser.ParsedVariable(
-            name=groups["NAME"], init=groups["INIT"], constraints=groups.get("CONSTRAINTS", list())
+            name=groups["NAME"], init=groups["INIT"], constraints=constraints
         )
 
     @staticmethod

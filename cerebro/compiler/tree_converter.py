@@ -34,6 +34,11 @@ class Node(ABC):
         if isinstance(sympy_object, sympy.Pow):
             return Pow.extract(sympy_object, symtable)
 
+        if isinstance(sympy_object, (sympy.GreaterThan, sympy.StrictGreaterThan,
+                                     sympy.LessThan, sympy.StrictLessThan,
+                                     sympy.And, sympy.Or)):
+            return BinaryOperator.extract(sympy_object, symtable)
+
         if isinstance(sympy_object, sympy.Number):
             return Numeral.extract(sympy_object, symtable)
 
@@ -52,9 +57,9 @@ class Node(ABC):
 
         raise Exception('Internal Error: Unknown node type')
 
-    def traverse(self, func, **func_kwargs):
-        ret = [child.traverse(func, func_kwargs) for child in self.children] if hasattr(self, 'children') else []
-        return func(self, ret, func_kwargs)
+    def traverse(self, parent, func, **func_kwargs):
+        ret = [child.traverse(self, func, **func_kwargs) for child in self.children] if hasattr(self, 'children') else []
+        return func(self, parent, ret, **func_kwargs)
 
 
 class Operator(Node, ABC):
@@ -69,6 +74,27 @@ class Operator(Node, ABC):
     @classmethod
     def extract(cls, sympy_object, symtable):
         return cls([Node.extract(arg, symtable) for arg in sympy_object.args])
+
+
+class BinaryOperator(Operator):
+    OP_MAP = {
+        sympy.GreaterThan: '>=',
+        sympy.StrictGreaterThan: '>',
+        sympy.LessThan: '<=',
+        sympy.StrictLessThan: '<',
+        sympy.And: '&',
+        sympy.Or: '|',
+        sympy.Xor: '^',
+    }
+
+    def __init__(self, children, op):
+        super().__init__(children)
+        self.op = op
+
+    @classmethod
+    def extract(cls, sympy_object, symtable):
+        op = BinaryOperator.OP_MAP[type(sympy_object)]
+        return cls([Node.extract(arg, symtable) for arg in sympy_object.args], op)
 
 
 class Mul(Operator):
@@ -143,8 +169,9 @@ class Proprietorship(Operator):
     PATTERN = re.compile(
         "^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=VARIABLE_NAME_PATTERN))
 
-    def __init__(self, children):
+    def __init__(self, owner, children):
         super().__init__(children)
+        self.owner = owner
 
     @staticmethod
     def match(sympy_symbol):
@@ -159,7 +186,7 @@ class Proprietorship(Operator):
         groups = matched.groupdict()
         owner = groups.get('OWNER')
         name = sympy.Symbol(groups.get('NAME'))
-        return cls([owner, Variable(name)])
+        return cls(owner, [Variable(name)])
 
     def __repr__(self):
         owner, name = self.children

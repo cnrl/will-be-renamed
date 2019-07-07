@@ -6,7 +6,7 @@ from cerebro.globals import ACCEPTABLE_CONSTRAINTS
 from cerebro.exceptions import ParseException, SemanticException
 from cerebro.enums import VariableScope, VariableContext, EquationContext, VariableVariability
 from cerebro.globals import FORBIDDEN_VARIABLE_NAMES, RESERVED_WORDS, ACCEPTABLE_PROPRIETOR
-from .tree_converter import Node, Variable, Derivative
+from .tree_converter import Node, Variable, Derivative, Proprietorship
 
 
 class Compiler:
@@ -39,9 +39,16 @@ class Compiler:
         for variable_spec in population_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
 
-        # parse equations
-        for equation in population.equations:
-            pass
+        for parsed_equation in population.neuron.equations:
+            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
+            equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
+
+        spike_expression = Compiler.NeuronExpression.from_parsed(population.neuron.spike, self.symtable)
+        spike_expression.semantic_analyzer(self.symtable)
+
+        for parsed_equation in population.neuron.reset:
+            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
+            equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
 
         self.population_symbol_tables[population] = deepcopy(self.symtable)
 
@@ -58,7 +65,13 @@ class Compiler:
         for variable_spec in connection_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
 
-        # parse connection equations
+        for parsed_equation in connection.synapse.equations:
+            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.SYNAPSE, self.symtable)
+            equation.semantic_analyzer(self.symtable, EquationContext.SYNAPSE,
+                                       proprietor_symtables={
+                                           'pre': self.population_symbol_tables[connection.pre],
+                                           'post': self.population_symbol_tables[connection.post]
+                                       })
 
         self.symtable.exit_scope()
 
@@ -140,15 +153,64 @@ class Compiler:
             )
 
     class Equation:
-        def __init__(self, variable, expression, equation_type):
+        def __init__(self, variable, expression, equation_type, context, symbol_table):
             self.variable = variable
-            self.expression = expression
+            expression_cls = Compiler.NeuronExpression \
+                if context == EquationContext.NEURON else Compiler.SynapseExpression
+            self.expression = expression_cls.from_parsed(expression, symbol_table)
             self.equation_type = equation_type
+
+        def semantic_analyzer(self, symbol_table, context, proprietor_symtables=None):
+            var_spec = symbol_table.get(self.variable)
+            if var_spec is None:
+                raise SemanticException('Variable {} is not defined in this scope.'.format(self.variable))
+            elif var_spec.variability == VariableVariability.CONSTANT:
+                raise SemanticException('Variable {} is defined as constant.'.format(self.variable))
+            if context == EquationContext.NEURON:
+                self.expression.semantic_analyzer(symbol_table)
+            else:
+                self.expression.semantic_analyzer(symbol_table, proprietor_symtables)
+
+        @staticmethod
+        def from_parsed(parsed_equation, context, symbol_table):
+            return Compiler.Equation(
+                parsed_equation.variable,
+                parsed_equation.expression,
+                parsed_equation.equation_type,
+                context,
+                symbol_table
+            )
 
     class Expression:
         def __init__(self, tree):
             self.tree = tree
 
-        @staticmethod
-        def from_parsed(expression, symbol_table):
-            return Compiler.Expression(Node.extract(sympy.sympify(expression), symbol_table))
+        @classmethod
+        def from_parsed(cls, expression, symbol_table):
+            return cls(Node.extract(sympy.sympify(expression), symbol_table))
+
+    class NeuronExpression(Expression):
+        def semantic_analyzer(self, symbol_table):
+            def is_defined(node, parent, children, **kwargs):
+                sym_table = kwargs.get('symbol_table')
+                if isinstance(node, Variable) and sym_table.get(str(node.symbol)) is None:
+                    raise SemanticException("Variable {} is not defined in this scope.".format(node.symbol))
+
+            self.tree.traverse(None, is_defined, symbol_table=symbol_table)
+
+    class SynapseExpression(Expression):
+        def semantic_analyzer(self, symbol_table, proprietor_symtables):
+            def is_defined(node, parent, children, **kwargs):
+                sym_table = kwargs.get('symbol_table')
+                proprietor_symbol_tables = kwargs.get('proprietor_symtables')
+                if isinstance(node, Variable):
+                    if not isinstance(parent, Proprietorship):
+                        if sym_table.get(str(node.symbol)) is None:
+                            raise SemanticException("Variable {} is not defined in this scope.".format(node.symbol))
+                    else:
+                        if proprietor_symbol_tables[parent.owner].get(str(node.symbol)) is None:
+                            raise SemanticException("Variable {} is not defined in {} population scope.".format(
+                                node.symbol, parent.owner
+                            ))
+
+            self.tree.traverse(None, is_defined, symbol_table=symbol_table, proprietor_symtables=proprietor_symtables)
