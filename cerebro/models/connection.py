@@ -54,4 +54,4 @@ class Connection:
         return getattr(self.wrapper, 'get_{}'.format(item))()
 
     def __hash__(self):
-        return 'connection.{}'.format(self.id)
+        return hash('connection.{}'.format(self.id))

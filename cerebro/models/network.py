@@ -2,7 +2,7 @@ from cerebro.exceptions import IllegalArgumentException
 from cerebro.models.population import Population
 from cerebro.models.connection import Connection
 from cerebro.compiler.compiler import Compiler
-from cerebro.code_generation.api import generate
+# from cerebro.code_generation.api import generate
 from cerebro.compiler.parser import VariableParser
 from cerebro.models.parameter_guards import IterableGuard, InstanceGuard
 
@@ -61,4 +61,4 @@ class Network:
         self.c_module.run(duration / self.c_module.get_dt())
 
     def __hash__(self):
-        return 'network.{}'.format(self.id)
+        return hash('network.{}'.format(self.id))

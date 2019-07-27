@@ -58,8 +58,8 @@ class Node(ABC):
 
         raise Exception('Internal Error: Unknown node type')
 
-    def traverse(self, parent, func, **func_kwargs):
-        ret = [child.traverse(self, func, **func_kwargs) for child in self.children] if hasattr(self, 'children') else []
+    def traverse(self, func, parent=None, **func_kwargs):
+        ret = [child.traverse(func, self, **func_kwargs) for child in self.children] if hasattr(self, 'children') else []
         return func(self, parent, ret, **func_kwargs)
 
 
@@ -190,7 +190,8 @@ class Proprietorship(Operator):
         groups = matched.groupdict()
         owner = groups.get('OWNER')
         name = sympy.Symbol(groups.get('NAME'))
-        return cls(owner, [Variable(name)])
+        scope = symtable.get(name)
+        return cls(owner, [Variable(name, scope)])
 
     def __repr__(self):
         owner, name = self.children
