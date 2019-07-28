@@ -91,6 +91,7 @@ struct Population{{ population_id }} {
         for(int i = 0; i < size; i++) {
 
             // TODO: ODE
+            // TODO: add network variable update capability
             {% for equation in update_equations %}
                 {% if equation.equation_type == 'simple' %}
                     {% if equation.variable.scope == 'local' %}
@@ -132,7 +133,7 @@ struct Population{{ population_id }} {
         }
         
         {% for variable in variables %}
-        {{ variable.name }}_history.push_back({{ variable.name }});
+        {{ variable.name }}_history.push_back({{ variable.name }});  // TODO: to be considered
 
         {% endfor %}
     }
