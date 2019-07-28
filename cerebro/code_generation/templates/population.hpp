@@ -16,18 +16,18 @@ struct Population{{ population_id }} {
     std::vector<int> spiked;
 
     {% for variable in variables %}
-    {% if variable.scope == 'shared'%}
+    {% if variable.scope == 'shared' %}
     {{ variable.c_type }} {{ variable.name }};
-    {% elif var.scope == 'local'%}
-    std::vector< {{ variable.c_type }} > {{ var_name }};
+    {% elif variable.scope == 'local' %}
+    std::vector< {{ variable.c_type }} > {{ variable.name }};
     {% endif %}
     {% endfor %}
 
     {% for variable in variables %}
-    {% if var.scope == 'shared'%}
+    {% if variable.scope == 'shared' %}
     std::vector<{{ variable.c_type }}> {{ variable.name }}_history;
-    {% elif var.scope == 'local'%}
-    std::vector<std::vector< {{ variable.c_type }} > >{{ var_name }}_history;
+    {% elif variable.scope == 'local' %}
+    std::vector<std::vector< {{ variable.c_type }} > >{{ variable.name }}_history;
     {% endif %}
 
     {% endfor %}
@@ -57,10 +57,10 @@ struct Population{{ population_id }} {
     {% endfor %}
 
   {% for variable in variables %}
-    {% if var.scope == 'shared'%}
+    {% if variable.scope == 'shared' %}
     std::vector<{{ variable.c_type }} > get_{{ variable.name }}_history() { return {{ variable.name }}_history; }
 
-    {% elif var.scope == 'local'%}
+    {% elif variable.scope == 'local' %}
     std::vector< std::vector<{{ variable.c_type }}> > get_{{ variable.name }}_history() { return {{ variable.name }}_history; }
 
     {% endif %}
@@ -70,7 +70,7 @@ struct Population{{ population_id }} {
     void init_population() {
 
         {% for variable in variables %}
-        {% if var.scope == 'shared'%}
+        {% if variable.scope == 'shared' %}
         {{ variable.name }} = {{ variable.init }};
         {% elif variable.scope == 'local'%}
         {{ variable.name }} = std::vector<{{ variable.c_type }} >(size, {{ variable.init }});

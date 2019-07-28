@@ -3,9 +3,11 @@ from cerebro.models import Neuron, Synapse, Network, Population, Connection
 neuron = Neuron(
     variables="""
         v = 0 : local
+        q = 0
     """,
     equations="""
         v = 5
+        dq / dt = 5
     """,
     spike="(v > 5)",
     reset="""

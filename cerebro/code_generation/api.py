@@ -85,7 +85,7 @@ class CodeGeneration:
         template = self.template_env.get_template('connection.hpp')
 
         for connection in self.connections:
-            update_equations = _generate_connection_update_equations(connection)
+            update_equations = self.connection_equations[connection]
             rendered = template.render(connection=connection, update_equations=update_equations)
             full_path = os.path.join(self.base_path, 'connection{}.hpp'.format(connection.id))
 
