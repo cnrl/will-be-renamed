@@ -12,8 +12,8 @@ struct Connection{{ connection.id }} {
     std::map< int, std::vector< std::pair<int, int> > > inv_pre_rank ;
     std::vector< int > inv_post_rank ;
 
-    {% for var_name, var in connection.synapse.variables.vars.items() %}  // TODO: should be changed :-?
-    std::vector< std::vector<double > > {{ var_name }};
+    {% for var in connection.synapse.variables %}
+    std::vector< std::vector<double > > {{ var.name }};
     {% endfor %}
 
     void init_connection() {
@@ -29,13 +29,13 @@ struct Connection{{ connection.id }} {
 
         inverse_connectivity_matrix();
 
-        {% for var_name, var in connection.synapse.variables.vars.items() %} // TODO: should be changed :-?
-        {{ var_name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
+        {% for var in connection.synapse.variables %}
+        {{ var.name }} = std::vector< std::vector<double> >(post_rank.size(), std::vector<double>());
         {% endfor %}
 
-        {% for var_name, var in connection.synapse.variables.vars.items() %}  // TODO: should be changed :-?
+        {% for var in connection.synapse.variables %}
         for(int post_idx = 0;post_idx < post_rank.size(); post_idx++)
-            {{ var_name }}[post_idx] = std::vector<double>(pre_rank[post_idx].size(), {{ var.init }});
+            {{ var.name }}[post_idx] = std::vector<double>(pre_rank[post_idx].size(), {{ var.init }});
 
         {% endfor %}
     }
@@ -72,19 +72,19 @@ struct Connection{{ connection.id }} {
         }
     }
 
-    void update_synapse() {  // TODO: should be changed :-?
+    void update_synapse() {
         for(int i = 0; i < post_rank.size(); i++) {
             int rank_post = post_rank[i];
 
             for(int j = 0; j < pre_rank[i].size(); j++) {
                 int rank_pre = pre_rank[i][j];
 
-                {% for var, equation in update_equations %}
-                double _{{ var }} = {{ equation }};
+                {% for equation in update_equations %}
+                double _{{ equation.variable }} = {{ equation.expression }};
                 {% endfor %}
 
-                {% for var, _ in update_equations %}
-                {{ var }}[i][j] += _{{ var }};
+                {% for equation in update_equations %}
+                {{ equation.variable }}[i][j] += _{{ equation.variable }};
                 {% endfor %}
             }
         }
@@ -110,30 +110,29 @@ struct Connection{{ connection.id }} {
         return pre_rank[n].size();
     }
 
-
-    {% for var_name, var in connection.synapse.variables.vars.items() %}  // TODO: should be changed :-?
-    std::vector<std::vector< double > > get_{{ var_name }}() {
-        return {{ var_name }};
+    {% for var in connection.synapse.variables %}
+    std::vector<std::vector< double > > get_{{ var.name }}() {
+        return {{ var.name }};
     }
 
-    std::vector<double> get_dendrite_{{ var_name }}(int rank) {
-        return {{ var_name }}[rank];
+    std::vector<double> get_dendrite_{{ var.name }}(int rank) {
+        return {{ var.name }}[rank];
     }
 
-    double get_synapse_{{ var_name }}(int rank_post, int rank_pre) {
-        return {{ var_name }}[rank_post][rank_pre];
+    double get_synapse_{{ var.name }}(int rank_post, int rank_pre) {
+        return {{ var.name }}[rank_post][rank_pre];
     }
 
-    void set_{{ var_name }}(std::vector<std::vector< double > >value) {
-        {{ var_name }} = value;
+    void set_{{ var.name }}(std::vector<std::vector< double > >value) {
+        {{ var.name }} = value;
     }
 
-    void set_dendrite_{{ var_name }}(int rank, std::vector<double> value) {
-        {{ var_name }}[rank] = value;
+    void set_dendrite_{{ var.name }}(int rank, std::vector<double> value) {
+        {{ var.name }}[rank] = value;
     }
 
-    void set_synapse_{{ var_name }}(int rank_post, int rank_pre, double value) {
-        {{ var_name }}[rank_post][rank_pre] = value;
+    void set_synapse_{{ var.name }}(int rank_post, int rank_pre, double value) {
+        {{ var.name }}[rank_post][rank_pre] = value;
     }
     {% endfor %}
 };

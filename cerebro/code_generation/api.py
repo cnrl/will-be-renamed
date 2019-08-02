@@ -5,7 +5,7 @@ from jinja2 import FileSystemLoader, Environment
 from sympy import Symbol
 
 from cerebro.exceptions import IllegalStateException
-from cerebro.enums import VariableScope
+
 
 class CodeGeneration:
     def __init__(self, network, populations, connections, population_variable_specs, connection_variable_specs,
@@ -107,6 +107,22 @@ class CodeGeneration:
 
         file.close()
 
+    def generate_make_file(self):
+        import numpy
+
+        template = self.template_env.get_template('Makefile')
+
+        numpy_includes = "-I" + numpy.get_include()
+
+        rendered = template.render(numpy_includes=numpy_includes)
+
+        full_path = os.path.join(self.base_path, 'Makefile')
+        file = open(full_path, "w+")
+
+        file.write(rendered)
+
+        file.close()
+
     def load_module(self):
         return importlib.import_module('build.net{}.wrapper'.format(self.network.id))
 
@@ -123,8 +139,6 @@ class CodeGeneration:
             raise IllegalStateException("directory {} already exists".format(base_path))
         os.mkdir(base_path)
         return base_path
-
-
 
 
 def _is_variable_population_dependent(variable):
@@ -164,7 +178,6 @@ def _generate_population_update_equations(population):
         update_equations.append((str(lhs), rhs))
 
     return update_equations
-
 
 
 def _generate_spike_conditions(population):
@@ -217,10 +230,6 @@ def _generate_connection_update_equations(connection):
         update_equations.append((str(lhs), rhs))
 
     return update_equations
-
-
-
-
 
 
 def _generate_make_file(base_path, template_env):

@@ -194,8 +194,8 @@ class Proprietorship(Operator):
         return cls(owner, [Variable(name, scope)])
 
     def __repr__(self):
-        owner, name = self.children
-        return "{}.{}".format(owner, repr(name))
+        child = self.children[0]
+        return "{}.{}".format(self.owner, repr(child))
 
 
 class Symbol(Node, ABC):
