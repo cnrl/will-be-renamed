@@ -23,6 +23,10 @@ void initialize(double _dt) {
     dt = _dt;
     t = (long int)(0);
 
+    {% for var in global_vars %}
+    {{ var.name }} = ({{ var.c_type }})({{ var.init }})
+    {% endfor %}
+
     {% for population in populations %}
     population{{ population.id }}.init_population();
     {% endfor %}
@@ -53,3 +57,8 @@ long int get_time() { return t; }
 void set_time(long int _t) { t = _t; }
 double get_dt() { return dt; }
 void set_dt(double _dt) { dt = _dt; }
+
+{% for var in global_vars %}
+{{ var.c_type }} get_{{ var.name }}() { return {{ var.init }}; }
+void set_{{ var.name }}({{ var.c_type }} _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
+{% endfor %}

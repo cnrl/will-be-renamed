@@ -188,7 +188,7 @@ class Proprietorship(Operator):
             raise Exception('Internal Error: sympy_object is not a proprietorship')
 
         groups = matched.groupdict()
-        owner = groups.get('OWNER')
+        owner = groups.get('OWNER')  # TODO: owner should be changed with pre and post population id
         name = sympy.Symbol(groups.get('NAME'))
         scope = symtable.get(name)
         return cls(owner, [Variable(name, scope)])

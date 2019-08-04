@@ -15,6 +15,10 @@
 extern double dt;
 extern long int t;
 
+{% for var in global_vars %}
+extern {{ var.c_type }} {{ var.name }};
+{% endfor %}
+
 long int get_time() ;
 void set_time(long int _t) ;
 

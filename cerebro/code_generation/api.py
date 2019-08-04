@@ -49,7 +49,8 @@ class CodeGeneration:
     def generate_core(self):
         for template_name in ['core.h', 'core.cpp']:
             template = self.template_env.get_template(template_name)
-            rendered = template.render(populations=self.populations, connections=self.connections)
+            rendered = template.render(populations=self.populations, connections=self.connections,
+                                       global_vars=self.network.variables)
 
             full_path = os.path.join(self.base_path, template_name)
             file = open(full_path, "w+")
