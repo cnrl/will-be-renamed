@@ -8,11 +8,13 @@ from cerebro.exceptions import IllegalStateException
 
 
 class CodeGeneration:
-    def __init__(self, network, populations, connections, population_variable_specs, connection_variable_specs,
-                 population_equations, population_reset_equations, population_spike_condition, connection_equations):
+    def __init__(self, network, populations, connections, network_variable_specs, population_variable_specs,
+                 connection_variable_specs, population_equations, population_reset_equations,
+                 population_spike_condition, connection_equations):
         self.network = network
         self.populations = populations
         self.connections = connections
+        self.network_variable_specs = network_variable_specs
         self.population_variable_specs = population_variable_specs
         self.connection_variable_specs = connection_variable_specs
         self.population_equations = population_equations
@@ -50,7 +52,7 @@ class CodeGeneration:
         for template_name in ['core.h', 'core.cpp']:
             template = self.template_env.get_template(template_name)
             rendered = template.render(populations=self.populations, connections=self.connections,
-                                       global_vars=self.network.variables)
+                                       network_variables=self.network_variable_specs)
 
             full_path = os.path.join(self.base_path, template_name)
             file = open(full_path, "w+")
@@ -69,6 +71,7 @@ class CodeGeneration:
 
             rendered = template.render(
                 population_id=population.id,
+                network_variables=self.network_variable_specs,
                 variables=self.population_variable_specs[population],
                 update_equations=update_equations,
                 spike_condition=spike_condition,
@@ -87,7 +90,13 @@ class CodeGeneration:
 
         for connection in self.connections:
             update_equations = self.connection_equations[connection]
-            rendered = template.render(connection=connection, update_equations=update_equations)
+            variables = self.connection_variable_specs[connection]
+            rendered = template.render(
+                connection=connection,
+                network_variables=self.network_variable_specs,
+                variables=variables,
+                update_equations=update_equations
+            )
             full_path = os.path.join(self.base_path, 'connection{}.hpp'.format(connection.id))
 
             file = open(full_path, "w+")

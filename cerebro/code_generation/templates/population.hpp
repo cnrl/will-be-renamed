@@ -4,6 +4,9 @@
 
 extern double dt;
 extern long int t;
+{% for var in network_variables %}
+extern {{ var.c_type }} {{ var.name }};
+{% endfor %}
 
 struct Population{{ population_id }} {
 
@@ -14,6 +17,8 @@ struct Population{{ population_id }} {
 
     std::vector<long int> last_spike;
     std::vector<int> spiked;
+    std::vector<double> g_exc;
+    std::vector<double> r;
 
     {% for variable in variables %}
     {% if variable.scope == 'shared' %}
@@ -95,9 +100,9 @@ struct Population{{ population_id }} {
             {% for equation in update_equations %}
                 {% if equation.equation_type == 'simple' %}
                     {% if equation.variable.scope == 'local' %}
-            {{ equation.variable }}[i] = {{ equation.expression }};
+            {{ equation.variable.name }}[i] = {{ equation.expression }};
                     {% else %}
-            {{ equation.variable }} = {{ equation.expression }};
+            {{ equation.variable.name }} = {{ equation.expression }};
                 {% endif %}
                 {% endif %}
             {% endfor %}
@@ -109,9 +114,9 @@ struct Population{{ population_id }} {
             if({{ spike_condition }}) {
                 {% for equation in update_equations %}
                     {% if equation.variable.scope == 'local' %}
-                {{ equation.variable }}[i] = {{ equation.expression }};
+                {{ equation.variable.name }}[i] = {{ equation.expression }};
                     {% else %}
-                {{ equation.variable }} = {{ equation.expression }};
+                {{ equation.variable.name }} = {{ equation.expression }};
                     {% endif %}
                 {% endfor %}
 

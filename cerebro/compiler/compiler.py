@@ -51,17 +51,40 @@ class Compiler:
             self.population_variable_specs[population].append(variable_spec)
 
         for parsed_equation in population.neuron.equations:
-            self.parse_expression(parsed_equation.expression, EquationContext.NEURON, self.symtable)
-            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
+            self.parse_expression(
+                parsed_equation.expression,
+                EquationContext.NEURON,
+                {
+                    'self': self.symtable
+                }
+            )
+            equation = Compiler.Equation.from_parsed(
+                parsed_equation,
+                EquationContext.NEURON,
+                {
+                    'self': self.symtable
+                }
+            )
             equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
             self.population_equations[population].append(equation)
 
-        spike_expression = Compiler.NeuronExpression.from_parsed(population.neuron.spike, self.symtable)
+        spike_expression = Compiler.NeuronExpression.from_parsed(
+            population.neuron.spike,
+            {
+                'self': self.symtable
+            }
+        )
         spike_expression.semantic_analyzer(self.symtable)
         self.population_spike_condition[population] = spike_expression
 
         for parsed_equation in population.neuron.reset:
-            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.NEURON, self.symtable)
+            equation = Compiler.Equation.from_parsed(
+                parsed_equation,
+                EquationContext.NEURON,
+                {
+                    'self': self.symtable
+                }
+            )
             if equation.equation_type == 'ode':
                 raise SemanticException("Reset expression cannot be an ODE: pop{}".format(population.id))
             equation.semantic_analyzer(self.symtable, EquationContext.NEURON)
@@ -84,13 +107,33 @@ class Compiler:
             self.connection_variable_specs[connection].append(variable_spec)
 
         for parsed_equation in connection.synapse.equations:
-            self.parse_expression(parsed_equation.expression, EquationContext.SYNAPSE, self.symtable)
-            equation = Compiler.Equation.from_parsed(parsed_equation, EquationContext.SYNAPSE, self.symtable)
-            equation.semantic_analyzer(self.symtable, EquationContext.SYNAPSE,
-                                       proprietor_symtables={
-                                           'pre': self.population_symbol_tables[connection.pre],
-                                           'post': self.population_symbol_tables[connection.post]
-                                       })
+            self.parse_expression(
+                parsed_equation.expression,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            equation = Compiler.Equation.from_parsed(
+                parsed_equation,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            equation.semantic_analyzer(
+                self.symtable,
+                EquationContext.SYNAPSE,
+                proprietor_symtables={
+                                        'pre': self.population_symbol_tables[connection.pre],
+                                        'post': self.population_symbol_tables[connection.post]
+                                    },
+                connection=connection
+            )
             self.connection_equations[connection].append(equation)
 
         self.symtable.exit_scope()
@@ -106,16 +149,20 @@ class Compiler:
 
     def code_gen(self):
         return CodeGeneration(self.network, self.network.populations, self.network.connections,
+                              self.network_variable_specs,
                               self.population_variable_specs, self.connection_variable_specs,
                               self.population_equations, self.population_reset_equations,
                               self.population_spike_condition, self.connection_equations).generate()
 
-    def parse_expression(self, expression, context, symtable):
+    def parse_expression(self, expression, context, symtables):
         if context == EquationContext.SYNAPSE:
             for proprietor in ACCEPTABLE_PROPRIETOR:
                 expression = expression.replace('{}.'.format(proprietor), '_{}_'.format(proprietor))
         expression = sympy.sympify(expression, evaluate=False)
-        tree = Node.extract(expression, symtable)
+        tree = Node.extract(
+            expression,
+            symtables
+        )
 
         def semantic_tree(node, parent, children, **func_kwargs):
             sym_table = func_kwargs.get('symtable')
@@ -131,12 +178,13 @@ class Compiler:
         tree.traverse(semantic_tree)
 
     class Variable:
-        def __init__(self, name, init, c_type, variability, scope):
+        def __init__(self, name, init, c_type, variability, scope, context):
             self.name = name
             self.init = init
             self.c_type = c_type
             self.variability = variability
             self.scope = scope
+            self.context = context
 
         @staticmethod
         def _extract_constraints(constraints):
@@ -172,18 +220,19 @@ class Compiler:
                 init=variable.init,
                 c_type=spec['type'],
                 variability=spec['variability'],
-                scope=spec['scope']
+                scope=spec['scope'],
+                context=context
             )
 
     class Equation:
-        def __init__(self, variable, expression, equation_type, context, symbol_table):
+        def __init__(self, variable, expression, equation_type, context, symtables):
             self.variable = variable
             expression_cls = Compiler.NeuronExpression \
                 if context == EquationContext.NEURON else Compiler.SynapseExpression
-            self.expression = expression_cls.from_parsed(expression, symbol_table)
+            self.expression = expression_cls.from_parsed(expression, symtables)
             self.equation_type = equation_type
 
-        def semantic_analyzer(self, symbol_table, context, proprietor_symtables=None):
+        def semantic_analyzer(self, symbol_table, context, **kwargs):
             var_spec = symbol_table.get(self.variable)
             if var_spec is None:
                 raise SemanticException('Variable {} is not defined in this scope.'.format(self.variable))
@@ -192,16 +241,17 @@ class Compiler:
             if context == EquationContext.NEURON:
                 self.expression.semantic_analyzer(symbol_table)
             else:
-                self.expression.semantic_analyzer(symbol_table, proprietor_symtables)
+                self.expression.semantic_analyzer(symbol_table, **kwargs)
+            self.variable = var_spec
 
         @staticmethod
-        def from_parsed(parsed_equation, context, symbol_table):
+        def from_parsed(parsed_equation, context, symtables):
             return Compiler.Equation(
                 parsed_equation.variable,
                 parsed_equation.expression,
                 parsed_equation.equation_type,
                 context,
-                symbol_table
+                symtables
             )
 
     class Expression:
@@ -209,8 +259,8 @@ class Compiler:
             self.tree = tree
 
         @classmethod
-        def from_parsed(cls, expression, symbol_table):
-            return cls(Node.extract(sympy.sympify(expression), symbol_table))
+        def from_parsed(cls, expression, symtables):
+            return cls(Node.extract(sympy.sympify(expression), symtables))
 
         def __str__(self):
             return repr(self)
@@ -229,19 +279,33 @@ class Compiler:
             self.tree.traverse(is_defined, symbol_table=symbol_table)
 
     class SynapseExpression(Expression):
-        def semantic_analyzer(self, symbol_table, proprietor_symtables):
+        def semantic_analyzer(self, symbol_table, **kwargs):
+            proprietor_symtables = kwargs.get('proprietor_symtables')
+            connection = kwargs.get('connection')
+
             def is_defined(node, parent, children, **kwargs):
                 sym_table = kwargs.get('symbol_table')
+                connection = kwargs.get('connection')
                 proprietor_symbol_tables = kwargs.get('proprietor_symtables')
                 if isinstance(node, Variable):
                     if not isinstance(parent, Proprietorship):
                         if sym_table.get(str(node.symbol)) is None and str(node.symbol) not in INTERNAL_VARIABLES:
                             raise SemanticException("Variable {} is not defined in this scope.".format(node.symbol))
                     else:
+                        parent.generate_display_name(
+                            'population{}'.format(connection.pre.id),
+                            'population{}'.format(connection.post.id)
+                        )
                         if proprietor_symbol_tables[parent.owner].get(str(node.symbol)) is None and \
                                 str(node.symbol) not in INTERNAL_VARIABLES:
                             raise SemanticException("Variable {} is not defined in {} population scope.".format(
                                 node.symbol, parent.owner
                             ))
 
-            self.tree.traverse(is_defined, symbol_table=symbol_table, proprietor_symtables=proprietor_symtables)
+            self.tree.traverse(
+                is_defined,
+
+                symbol_table=symbol_table,
+                proprietor_symtables=proprietor_symtables,
+                connection=connection
+            )

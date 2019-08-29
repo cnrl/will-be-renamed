@@ -4,7 +4,7 @@ import re
 import sympy
 
 from cerebro.globals import VARIABLE_NAME_PATTERN
-from cerebro.enums import VariableScope
+from cerebro.enums import VariableScope, VariableContext
 
 
 class Node(ABC):
@@ -17,7 +17,7 @@ class Node(ABC):
         pass
 
     @classmethod
-    def extract(cls, sympy_object, symtable):
+    def extract(cls, sympy_object, symtables):
         """
         Extract type of AST node.
         :param cls:
@@ -27,34 +27,34 @@ class Node(ABC):
         """
 
         if isinstance(sympy_object, sympy.Mul):
-            return Mul.extract(sympy_object, symtable)
+            return Mul.extract(sympy_object, symtables)
 
         if isinstance(sympy_object, sympy.Add):
-            return Add.extract(sympy_object, symtable)
+            return Add.extract(sympy_object, symtables)
 
         if isinstance(sympy_object, sympy.Pow):
-            return Pow.extract(sympy_object, symtable)
+            return Pow.extract(sympy_object, symtables)
 
         if isinstance(sympy_object, (sympy.GreaterThan, sympy.StrictGreaterThan,
                                      sympy.LessThan, sympy.StrictLessThan,
                                      sympy.And, sympy.Or)):
-            return BinaryOperator.extract(sympy_object, symtable)
+            return BinaryOperator.extract(sympy_object, symtables)
 
         if isinstance(sympy_object, sympy.Number):
-            return Numeral.extract(sympy_object, symtable)
+            return Numeral.extract(sympy_object, symtables)
 
         if not sympy_object.is_symbol:
             print(sympy_object, type(sympy_object))
             raise Exception('Internal Error: Unknown node type')
 
         if Proprietorship.match(sympy_object):
-            return Proprietorship.extract(sympy_object, symtable)
+            return Proprietorship.extract(sympy_object, symtables)
 
-        if Derivative.match(sympy_object, symtable):
-            return Derivative.extract(sympy_object, symtable)
+        if Derivative.match(sympy_object, symtables):
+            return Derivative.extract(sympy_object, symtables)
 
         if Variable.match(sympy_object):
-            return Variable.extract(sympy_object, symtable)
+            return Variable.extract(sympy_object, symtables)
 
         raise Exception('Internal Error: Unknown node type')
 
@@ -150,7 +150,8 @@ class Derivative(Operator):
     @staticmethod
     def match(sympy_symbol, symtable):
         matched = Derivative.PATTERN.match(str(sympy_symbol))
-        return matched if matched is not None and symtable.is_defined(matched.groupdict().get('NAME')) else None
+        return matched if matched is not None \
+                          and symtable['self'].is_defined(matched.groupdict().get('NAME')) else None
 
     @classmethod
     def extract(cls, sympy_object, symtable):
@@ -176,13 +177,20 @@ class Proprietorship(Operator):
     def __init__(self, owner, children):
         super().__init__(children)
         self.owner = owner
+        self._display_name = None
+
+    def generate_display_name(self, pre_display_name, post_display_name):
+        self._display_name = '{0}.{1}'.format(
+            pre_display_name if self.owner == 'pre' else post_display_name,
+            repr(self.children[0])
+        )
 
     @staticmethod
     def match(sympy_symbol):
         return Proprietorship.PATTERN.match(str(sympy_symbol))
 
     @classmethod
-    def extract(cls, sympy_object, symtable):
+    def extract(cls, sympy_object, symtables):
         matched = Proprietorship.match(sympy_object)
         if matched is None:
             raise Exception('Internal Error: sympy_object is not a proprietorship')
@@ -190,12 +198,11 @@ class Proprietorship(Operator):
         groups = matched.groupdict()
         owner = groups.get('OWNER')  # TODO: owner should be changed with pre and post population id
         name = sympy.Symbol(groups.get('NAME'))
-        scope = symtable.get(name)
-        return cls(owner, [Variable(name, scope)])
+        spec = symtables[owner].get(str(name))
+        return cls(owner, [Variable(name, spec)])
 
     def __repr__(self):
-        child = self.children[0]
-        return "{}.{}".format(self.owner, repr(child))
+        return self._display_name
 
 
 class Symbol(Node, ABC):
@@ -219,9 +226,9 @@ class Numeral(Symbol):
 class Variable(Symbol):
     PATTERN = re.compile(VARIABLE_NAME_PATTERN)
 
-    def __init__(self, symbol, scope):
+    def __init__(self, symbol, spec):
         super().__init__(symbol)
-        self.scope = scope
+        self.spec = spec
 
     @staticmethod
     def match(sympy_symbol):
@@ -229,11 +236,14 @@ class Variable(Symbol):
 
     @classmethod
     def extract(cls, sympy_object, symtable):
-        return cls(sympy_object, symtable.get(str(sympy_object)).scope)
+        return cls(sympy_object, symtable['self'].get(str(sympy_object)))
 
     def __repr__(self):
         super_repr = str(super().__repr__())
-        if self.scope == VariableScope.SHARED:
+        if self.spec.scope == VariableScope.SHARED.value or \
+                self.spec.context == VariableContext.NETWORK:
             return super_repr
-        else:
+        elif self.spec.context == VariableContext.NEURON:
             return super_repr + '[i]'
+        else:
+            return super_repr + '[i][j]'

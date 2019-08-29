@@ -1,4 +1,6 @@
 from cerebro.models import Neuron, Synapse, Network, Population, Connection
+import os
+os.system("rm -rf build/")
 
 neuron = Neuron(
     variables="""
@@ -33,3 +35,4 @@ conn = Connection(pre=pop, post=pop2, synapse=synapse)
 net = Network(populations=[pop, pop2], connections=[conn], variables="n = 2")
 
 net.compile()
+

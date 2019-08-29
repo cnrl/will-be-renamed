@@ -15,7 +15,7 @@
 extern double dt;
 extern long int t;
 
-{% for var in global_vars %}
+{% for var in network_variables %}
 extern {{ var.c_type }} {{ var.name }};
 {% endfor %}
 
