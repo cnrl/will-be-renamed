@@ -108,7 +108,10 @@ class CodeGeneration:
     def generate_wrapper(self):
         template = self.template_env.get_template('wrapper.pyx')
 
-        rendered = template.render(populations=self.populations, connections=self.connections)
+        rendered = template.render(populations=self.populations,
+                                   population_variable_specs=self.population_variable_specs,
+                                   connections=self.connections,
+                                   connection_variable_specs=self.connection_variable_specs)
 
         full_path = os.path.join(self.base_path, 'wrapper.pyx')
         file = open(full_path, "w+")

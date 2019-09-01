@@ -137,7 +137,7 @@ struct Connection{{ connection.id }} {
         return {{ var.name }}[rank];
     }
 
-    double get_synapse_{{ var.name }}(int rank_post, int rank_pre) {
+    {{ var.c_type }} get_synapse_{{ var.name }}(int rank_post, int rank_pre) {
         return {{ var.name }}[rank_post][rank_pre];
     }
 
@@ -158,7 +158,7 @@ struct Connection{{ connection.id }} {
         return {{ var.name }};
      }
 
-    void set_{{ var.name }}({{var.c_type}} value) {
+    void set_{{ var.name }}({{ var.c_type }} value) {
         {{ var.name }} = value;
     }
     {% endif %}

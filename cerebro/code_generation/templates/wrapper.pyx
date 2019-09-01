@@ -21,24 +21,24 @@ cdef extern from "core.h":
         int get_size()
         void set_size(int)
 
-        {% for var in population.neuron.variables %}
-        {% if 'shared' in var.constraints %}
-        double  get_{{ var.name }}()
-        void set_{{ var.name }}(double)
-        {% elif 'local' in var.constraints %}
-        vector[double] get_{{ var.name }}()
-        double get_single_{{ var.name }}(int)
-        void set_{{ var.name }}(vector[double])
-        void set_single_{{ var.name }}(int, double)
+        {% for var in population_variable_specs[population] %}
+        {% if var.scope == 'shared' %}
+        {{ var.c_type }}  get_{{ var.name }}()
+        void set_{{ var.name }}({{ var.c_type }})
+        {% elif var.scope == 'local' %}
+        vector[{{ var.c_type }}] get_{{ var.name }}()
+        {{ var.c_type }} get_single_{{ var.name }}(int)
+        void set_{{ var.name }}(vector[{{ var.c_type }}])
+        void set_single_{{ var.name }}(int, {{ var.c_type }})
         {% endif %}
 
         {% endfor %}
 
-        {% for var in population.neuron.variables %}
-        {% if 'shared' in var.constraints %}
-        vector[double] get_{{ var.name }}_history()
-        {% elif 'local' in var.constraints %}
-        vector[vector[double]] get_{{ var.name }}_history()
+        {% for var in population_variable_specs[population] %}
+        {% if var.scope == 'shared' %}
+        vector[{{ var.c_type }}] get_{{ var.name }}_history()
+        {% elif var.scope == 'local' %}
+        vector[vector[{{ var.c_type }}]] get_{{ var.name }}_history()
         {% endif %}
 
         {% endfor %}
@@ -70,14 +70,19 @@ cdef extern from "core.h":
         void set_dendrite_w(int, vector[double])
         void set_synapse_w(int, int, double)
 
-        {% for var in connection.synapse.variables %}
+        {% for var in connection_variable_specs[connection] %}
         {% if var.name != 'w' %}
-        vector[vector[double]] get_{{ var.name }}()
-        vector[double] get_dendrite_{{ var.name }}(int)
-        double get_synapse_{{ var.name }}(int, int)
-        void set_{{ var.name }}(vector[vector[double]])
-        void set_dendrite_{{ var.name }}(int, vector[double])
-        void set_synapse_{{ var.name }}(int, int, double)
+        {% if var.scope == 'local' %}
+        vector[vector[{{ var.c_type }}]] get_{{ var.name }}()
+        vector[{{ var.c_type }}] get_dendrite_{{ var.name }}(int)
+        {{ var.c_type }} get_synapse_{{ var.name }}(int, int)
+        void set_{{ var.name }}(vector[vector[{{ var.c_type }}]])
+        void set_dendrite_{{ var.name }}(int, vector[{{ var.c_type }}])
+        void set_synapse_{{ var.name }}(int, int, {{ var.c_type }})
+        {% else %}
+        {{ var.c_type }} get_{{ var.name }}()
+        void set_{{ var.name }}({{ var.c_type }})
+        {% endif %}
         {% endif %}
         {% endfor %}
     {% endfor %}
@@ -95,21 +100,21 @@ cdef class Population{{ population.id }}Wrapper:
         def __get__(self):
             return population{{ population.id }}.get_size()
 
-    {% for var in population.neuron.variables %}
-    {% if 'shared' in var.constraints %}
-    cpdef double get_{{ var.name }}(self):
+    {% for var in population_variable_specs[population] %}
+    {% if var.scope == 'shared' %}
+    cpdef {{ var.c_type }} get_{{ var.name }}(self):
         return population{{ population.id }}.get_{{ var.name }}()
 
-    cpdef set_{{ var.name }}(self, double value):
+    cpdef set_{{ var.name }}(self, {{ var.c_type }} value):
         population{{ population.id }}.set_{{ var.name }}(value)
-    {% elif 'local' in var.constraints %}
+    {% elif var.scope == 'local' %}
     cpdef np.ndarray get_{{ var.name }}(self):
         return np.array(population{{ population.id }}.get_{{ var.name }}())
 
     cpdef set_{{ var.name }}(self, np.ndarray value):
         population{{ population.id }}.set_{{ var.name }}( value )
 
-    cpdef double get_single_{{ var.name }}(self, int rank):
+    cpdef {{ var.c_type }} get_single_{{ var.name }}(self, int rank):
         return population{{ population.id }}.get_single_{{ var.name }}(rank)
 
     cpdef set_single_{{ var.name }}(self, int rank, value):
@@ -118,7 +123,7 @@ cdef class Population{{ population.id }}Wrapper:
 
     {% endfor %}
 
-    {% for var in population.neuron.variables %}
+    {% for var in population_variable_specs[population] %}
     cpdef np.ndarray get_{{ var.name }}_history(self):
         return np.array(population{{ population.id }}.get_{{ var.name }}_history())
 
@@ -153,7 +158,7 @@ cdef class Connection{{ connection.id }}Wrapper:
     def set_synapse_w(self, int rank_post, int rank_pre, double value):
         connection{{ connection.id }}.set_synapse_w(rank_post, rank_pre, value)
 
-    {% for var in connection.synapse.variables %}
+    {% for var in connection_variable_specs[connection] %}
     {% if var.name != 'w' %}
     def get_{{ var.name }}(self):
         return connection{{ connection.id }}.get_{{ var.name }}()
@@ -161,17 +166,19 @@ cdef class Connection{{ connection.id }}Wrapper:
     def set_{{ var.name }}(self, value):
         connection{{ connection.id }}.set_{{ var.name }}(value)
 
+    {% if var.scope == 'local' %}
     def get_dendrite_{{ var.name }}(self, int rank):
         return connection{{ connection.id }}.get_dendrite_{{ var.name }}(rank)
 
-    def set_dendrite_{{ var.name }}(self, int rank, vector[double] value):
+    def set_dendrite_{{ var.name }}(self, int rank, vector[{{ var.c_type }}] value):
         connection{{ connection.id }}.set_dendrite_{{ var.name }}(rank, value)
 
     def get_synapse_{{ var.name }}(self, int rank_post, int rank_pre):
         return connection{{ connection.id }}.get_synapse_{{ var.name }}(rank_post, rank_pre)
 
-    def set_synapse_{{ var.name }}(self, int rank_post, int rank_pre, double value):
+    def set_synapse_{{ var.name }}(self, int rank_post, int rank_pre, {{ var.c_type }} value):
         connection{{ connection.id }}.set_synapse_{{ var.name }}(rank_post, rank_pre, value)
+    {% endif %}
 
     {% endif %}
     {% endfor %}
