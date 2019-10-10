@@ -11,6 +11,10 @@ Population{{ population.id }} population{{ population.id }};
 Connection{{ connection.id }} connection{{ connection.id }};
 {% endfor %}
 
+{% for var in network_variables %}
+{{ var.c_type }} {{ var.name }};
+{% endfor %}
+
 void single_step();
 
 void run(int steps) {

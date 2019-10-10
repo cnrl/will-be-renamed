@@ -52,9 +52,8 @@ class Network:
     def compile(self):
         self.compiler = Compiler(network=self)
         self.compiler.semantic_analyzer()
-        self.compiler.code_gen()
-        #self.c_module = generate(self.id, self.variables, self.populations, self.connections)
-        #self._bind_c_instances()
+        self.c_module = self.compiler.code_gen()
+        # self._bind_c_instances()
 
     def simulate(self, duration, dt):
         self.c_module.initialize(dt)

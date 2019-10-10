@@ -163,4 +163,28 @@ struct Connection{{ connection.id }} {
     }
     {% endif %}
     {% endfor %}
+
+    std::vector<std::vector< double > > get_w() {
+        return w;
+    }
+
+    std::vector<double> get_dendrite_w(int rank) {
+        return w[rank];
+    }
+
+    double get_synapse_w(int rank_post, int rank_pre) {
+        return w[rank_post][rank_pre];
+    }
+
+    void set_w(std::vector<std::vector< double > >value) {
+        w = value;
+    }
+
+    void set_dendrite_w(int rank, std::vector<double> value) {
+        w[rank] = value;
+    }
+
+    void set_synapse_w(int rank_post, int rank_pre, double value) {
+        w[rank_post][rank_pre] = value;
+    }
 };

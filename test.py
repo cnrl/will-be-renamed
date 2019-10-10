@@ -36,3 +36,5 @@ net = Network(populations=[pop, pop2], connections=[conn], variables="n = 2")
 
 net.compile()
 
+net.simulate(8000, 1)
+
