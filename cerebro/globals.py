@@ -1,8 +1,8 @@
 """Objects with a wide range of use in the package
 
 Objects
-----------
-FORBIDDEN_VARIABLE_NAMES : dict of VariableContext: set of str
+-------
+FORBIDDEN_VARIABLE_NAMES : dict of .enums.VariableContext: set of str
     Set of meaningful variables in each context. These variables can not be redefined as variables in a context.
 INTERNAL_VARIABLES : set of str
     Set of variables that can be explicitly used in an equation in a context.
