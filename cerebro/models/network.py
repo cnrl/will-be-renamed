@@ -94,13 +94,11 @@ class Network:
         self.compiler = Compiler(network=self)
         self.compiler.semantic_analyzer()
         self.c_module = self.compiler.code_gen()
-        # self._bind_c_instances()
+        self._bind_c_instances()
 
     def simulate(self, duration, dt):
         """Simulates the network for `duration` time with `dt` step size."""
-
         self.c_module.initialize(dt)
         self.c_module.run(duration / self.c_module.get_dt())
-
     def __hash__(self):
         return hash('network.{}'.format(self.id))

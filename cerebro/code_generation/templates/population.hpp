@@ -83,6 +83,9 @@ struct Population{{ population_id }} {
         {% endfor %}
 
         spiked = std::vector<int>(0, 0);
+        g_exc = std::vector<double>(size, 0);
+        r = std::vector<double> (size, 0);
+
         last_spike = std::vector<long int>(size, -10000L);
 
         _spike_history = std::vector< std::queue<long int> >(size, std::queue<long int>());
@@ -91,8 +94,8 @@ struct Population{{ population_id }} {
     }
 
     void update() {
-        spiked.clear();
 
+        spiked.clear();
         for(int i = 0; i < size; i++) {
 
             // TODO: ODE
@@ -135,6 +138,7 @@ struct Population{{ population_id }} {
 
                 r[i] = _mean_fr_rate * float(_spike_history[i].size());
             }
+
         }
         
         {% for variable in variables %}

@@ -7,7 +7,7 @@ neuron = Neuron(
         v = 0 : local
     """,
     equations="""
-        v = 5
+        v = v + 0.1
     """,
     spike="(v > 5)",
     reset="""
