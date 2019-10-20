@@ -1,3 +1,11 @@
+"""Module containing a single class to define connection between two population of neurons.
+
+Classes
+-------
+Connection
+    Base class to define a connection between two population of neurons.
+"""
+
 from cerebro.models.population import Population
 from cerebro.models.synapse import Synapse
 from cerebro.exceptions import IllegalArgumentException
@@ -5,27 +13,46 @@ from cerebro.models.parameter_guards import InstanceGuard
 
 
 class Connection:
-    """
-        Class to define a connection(gathering all synapses of the same type) between two populations.
+    """Base class to define a connection between two population of neurons.
+
+    Attributes
+    ----------
+    pre : cerebro.models.population.Population
+        Pre-synaptic population of neurons.
+    post : cerebro.models.population.Population
+        Post-synaptic population of neurons.
+    synapse : cerebro.models.synapse.Synapse
+        A synapse object that constructs the connection.
+    wrapper :
+        # TODO
+    id : int
+        Identifier number of each connection.
     """
     _instance_count = 0
 
     def __init__(self, pre, post, synapse):
         """
-            Parameters:
+        Parameters
+        ----------
+        pre : cerebro.models.population.Population
+            Pre-synaptic population of neurons.
+        post : cerebro.models.population.Population
+            Post-synaptic population of neurons.
+        synapse : cerebro.models.synapse.Synapse
+            A synapse object that constructs the connection.
 
-            > pre: Pre-synaptic population.
-            > post: Post-synaptic population.
-            > synapse: A synapse instance the connection is made of.
+        Raises
+        ------
+        IllegalArgumentException : If arguments are not of appropriate type.
         """
 
         # parameter validation
         if not InstanceGuard(Population).is_valid(pre):
-            raise IllegalArgumentException(self.__class__.__name__ + ".pre must be a " + Population.__class__.__name__)
+            raise IllegalArgumentException(self.__class__.__name__ + ".pre must be a " + Population.__name__)
         if not InstanceGuard(Population).is_valid(post):
-            raise IllegalArgumentException(self.__class__.__name__ + ".post must be a " + Population.__class__.__name__)
+            raise IllegalArgumentException(self.__class__.__name__ + ".post must be a " + Population.__name__)
         if not InstanceGuard(Synapse).is_valid(synapse):
-            raise IllegalArgumentException(self.__class__.__name__ + ".synapse must be a " + Synapse.__class__.__name__)
+            raise IllegalArgumentException(self.__class__.__name__ + ".synapse must be a " + Synapse.__name__)
 
         self.pre = pre
         self.post = post
@@ -46,6 +73,12 @@ class Connection:
         """ + str(self.synapse) + ")"
 
     def __getattr__(self, item):
+        """
+            Raises
+            ------
+            AttributeError : If an attribute does not exist.
+        """
+
         if self.wrapper is None or \
                 (not hasattr(self.wrapper, 'get_{}'.format(item)) and not hasattr(self.wrapper, item)):
             raise AttributeError('object {} has no attribute \'{}\''.format(self.__class__.__name__, item))
