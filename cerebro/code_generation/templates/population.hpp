@@ -17,7 +17,6 @@ struct Population{{ population_id }} {
 
     std::vector<long int> last_spike;
     std::vector<int> spiked;
-    std::vector<double> g_exc;
     std::vector<double> r;
 
     {% for variable in variables %}
@@ -83,7 +82,6 @@ struct Population{{ population_id }} {
         {% endfor %}
 
         spiked = std::vector<int>(0, 0);
-        g_exc = std::vector<double>(size, 0);
         r = std::vector<double> (size, 0);
 
         last_spike = std::vector<long int>(size, -10000L);
@@ -115,7 +113,7 @@ struct Population{{ population_id }} {
 
             {% if spike_condition %}
             if({{ spike_condition }}) {
-                {% for equation in update_equations %}
+                {% for equation in reset_equations %}
                     {% if equation.variable.scope == 'local' %}
                 {{ equation.variable.name }}[i] = {{ equation.expression }};
                     {% else %}

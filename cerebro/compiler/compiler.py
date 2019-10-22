@@ -3,7 +3,7 @@ from copy import deepcopy
 import sympy
 
 from .symbol_table import SymbolTable
-from cerebro.globals import ACCEPTABLE_CONSTRAINTS
+from cerebro.globals import ACCEPTABLE_CONSTRAINTS, BUILTIN_VARIABLES
 from cerebro.exceptions import ParseException, SemanticException
 from cerebro.enums import VariableScope, VariableContext, EquationContext, VariableVariability
 from cerebro.globals import FORBIDDEN_VARIABLE_NAMES, RESERVED_WORDS, ACCEPTABLE_PROPRIETOR, INTERNAL_VARIABLES
@@ -43,6 +43,7 @@ class Compiler:
         population_variable_specs = [
             Compiler.Variable.from_parsed(variable, VariableContext.NEURON) for variable in population.neuron.variables
         ]
+        population_variable_specs.extend(Compiler.Variable.get_builtin_variables())
 
         self.symtable.enter_scope()
 
@@ -223,6 +224,10 @@ class Compiler:
                 scope=spec['scope'],
                 context=context
             )
+
+        @staticmethod
+        def get_builtin_variables():
+            return [Compiler.Variable(**variable_args) for variable_args in BUILTIN_VARIABLES]
 
     class Equation:
         def __init__(self, variable, expression, equation_type, context, symtables):

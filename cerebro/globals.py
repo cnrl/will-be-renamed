@@ -59,3 +59,14 @@ ACCEPTABLE_CONSTRAINTS = {
 }
 
 ACCEPTABLE_PROPRIETOR = {'pre', 'post'}
+
+BUILTIN_VARIABLES = [
+    {
+        'name': 'g_exc',
+        'init': '0',
+        'c_type': 'float',
+        'variability': 'variable',
+        'scope': 'local',
+        'context': VariableContext.NEURON
+    }
+]
