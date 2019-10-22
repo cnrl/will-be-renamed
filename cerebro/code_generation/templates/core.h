@@ -3,6 +3,8 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <random>
+
 
 {% for population in populations %}
 #include "population{{ population.id }}.hpp"
@@ -11,6 +13,8 @@
 {% for connection in connections %}
 #include "connection{{ connection.id }}.hpp"
 {% endfor %}
+
+extern std::default_random_engine random_generator;
 
 extern double dt;
 extern long int t;

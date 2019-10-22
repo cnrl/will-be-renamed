@@ -2,9 +2,13 @@
 
 #include "population{{ connection.pre.id }}.hpp"
 #include "population{{ connection.post.id }}.hpp"
+#include "connectivity.h"
+
+extern std::default_random_engine random_generator;
 
 extern Population{{ connection.pre.id }} population{{ connection.pre.id }} ;
 extern Population{{ connection.post.id }} population{{ connection.post.id }} ;
+
 {% for var in network_variables %}
 extern {{ var.c_type }} {{ var.name }};
 {% endfor %}
@@ -28,12 +32,7 @@ struct Connection{{ connection.id }} {
         for (int rank = 0;rank < population{{ connection.post.id }}.size; rank++)
             post_rank.push_back(rank);
 
-        for (int post_rank_idx = 0;post_rank_idx < population{{ connection.post.id }}.size; post_rank_idx++) {
-            pre_rank.push_back(std::vector<int>());
-
-            for (int pre_rank_idx = 0;pre_rank_idx < population{{ connection.pre.id }}.size; pre_rank_idx++)
-                pre_rank.back().push_back(pre_rank_idx);
-        }
+        pre_rank = connect_all_to_all(population0.size, population1.size); // TODO
 
         inverse_connectivity_matrix();
 

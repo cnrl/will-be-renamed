@@ -1,5 +1,7 @@
 #include "core.h"
 
+std::default_random_engine random_generator(53);
+
 double dt;
 long int t;
 

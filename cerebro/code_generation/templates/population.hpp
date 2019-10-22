@@ -2,6 +2,8 @@
 
 #include "core.h"
 
+extern std::default_random_engine random_generator;
+
 extern double dt;
 extern long int t;
 {% for var in network_variables %}
