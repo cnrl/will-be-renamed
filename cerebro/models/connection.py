@@ -30,7 +30,7 @@ class Connection:
     """
     _instance_count = 0
 
-    def __init__(self, pre, post, synapse):
+    def __init__(self, pre, post, synapse, connection_type):
         """
         Parameters
         ----------
@@ -40,7 +40,7 @@ class Connection:
             Post-synaptic population of neurons.
         synapse : cerebro.models.synapse.Synapse
             A synapse object that constructs the connection.
-
+        # TODO
         Raises
         ------
         IllegalArgumentException : If arguments are not of appropriate type.
@@ -57,6 +57,7 @@ class Connection:
         self.pre = pre
         self.post = post
         self.synapse = synapse
+        self.connection_type = connection_type
 
         self.wrapper = None
 
