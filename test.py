@@ -1,4 +1,4 @@
-from cerebro.models import Neuron, Synapse, Network, Population, Connection
+from cerebro.models import Neuron, Synapse, Network, Population, Connection, ConnectionType
 import os
 os.system("rm -rf build/")
 
@@ -30,7 +30,7 @@ synapse = Synapse(
 pop = Population(neuron=neuron, size=10)
 pop2 = Population(neuron=neuron, size=10)
 
-conn = Connection(pre=pop, post=pop2, synapse=synapse)
+conn = Connection(pre=pop, post=pop2, synapse=synapse, connection_type=ConnectionType.AllToAllConnection())
 
 net = Network(populations=[pop, pop2], connections=[conn], variables="n = 2")
 

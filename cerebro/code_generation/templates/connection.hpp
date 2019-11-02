@@ -32,7 +32,7 @@ struct Connection{{ connection.id }} {
         for (int rank = 0;rank < population{{ connection.post.id }}.size; rank++)
             post_rank.push_back(rank);
 
-        pre_rank = connect_all_to_all(population0.size, population1.size); // TODO
+        pre_rank = connect_all_to_all(population0.size, population1.size, 0); // TODO
 
         inverse_connectivity_matrix();
 
