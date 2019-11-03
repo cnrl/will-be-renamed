@@ -106,7 +106,8 @@ class CodeGeneration:
                 connection=connection,
                 network_variables=self.network_variable_specs,
                 variables=variables,
-                update_equations=update_equations
+                update_equations=update_equations,
+                connect_function=connection.connection_type.get_c_definition(connection)
             )
             full_path = os.path.join(self.base_path, 'connection{}.hpp'.format(connection.id))
 

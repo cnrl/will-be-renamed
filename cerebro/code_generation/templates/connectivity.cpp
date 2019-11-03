@@ -1,5 +1,3 @@
-#pragma once
-
 #include "connectivity.h"
 
 bool all_to_all_func(int pre_rank_idx, int post_rank_idx, float param){
