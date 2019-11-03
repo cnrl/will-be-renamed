@@ -3,7 +3,7 @@ from copy import deepcopy
 import sympy
 
 from .symbol_table import SymbolTable
-from cerebro.globals import ACCEPTABLE_CONSTRAINTS, BUILTIN_VARIABLES
+from cerebro.globals import ACCEPTABLE_CONSTRAINTS, BUILTIN_VARIABLES, ADJECTIVE_VARIABLE_NAMES
 from cerebro.exceptions import ParseException, SemanticException
 from cerebro.enums import VariableScope, VariableContext, EquationContext, VariableVariability
 from cerebro.globals import FORBIDDEN_VARIABLE_NAMES, RESERVED_WORDS, ACCEPTABLE_PROPRIETOR, INTERNAL_VARIABLES
@@ -43,13 +43,18 @@ class Compiler:
         population_variable_specs = [
             Compiler.Variable.from_parsed(variable, VariableContext.NEURON) for variable in population.neuron.variables
         ]
-        population_variable_specs.extend(Compiler.Variable.get_builtin_variables())
+        population_variable_specs.extend(Compiler.Variable.get_builtin_variables(VariableContext.NEURON))
 
         self.symtable.enter_scope()
 
         for variable_spec in population_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
             self.population_variable_specs[population].append(variable_spec)
+
+        not_defined_adjectives = ADJECTIVE_VARIABLE_NAMES[VariableContext.NEURON] \
+                                 - {variable_spec.name for variable_spec in population_variable_specs}
+        if not_defined_adjectives:
+            raise SemanticException(f"You should define all adjective variables: !!!!!{not_defined_adjectives}")
 
         for parsed_equation in population.neuron.equations:
             self.parse_expression(
@@ -100,12 +105,19 @@ class Compiler:
             Compiler.Variable.from_parsed(variable, VariableContext.SYNAPSE) for variable in
             connection.synapse.variables
         ]
+        connection_variable_specs.extend(Compiler.Variable.get_builtin_variables(VariableContext.SYNAPSE))
 
         self.symtable.enter_scope()
 
         for variable_spec in connection_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
             self.connection_variable_specs[connection].append(variable_spec)
+
+        not_defined_adjectives = ADJECTIVE_VARIABLE_NAMES[VariableContext.SYNAPSE] \
+                                 - {variable_spec.name for variable_spec in connection_variable_specs}
+
+        if not_defined_adjectives:
+            raise SemanticException(f"You should define all adjective variables: !!!!!{not_defined_adjectives}")
 
         for parsed_equation in connection.synapse.equations:
             self.parse_expression(
@@ -130,9 +142,9 @@ class Compiler:
                 self.symtable,
                 EquationContext.SYNAPSE,
                 proprietor_symtables={
-                                        'pre': self.population_symbol_tables[connection.pre],
-                                        'post': self.population_symbol_tables[connection.post]
-                                    },
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                },
                 connection=connection
             )
             self.connection_equations[connection].append(equation)
@@ -226,8 +238,9 @@ class Compiler:
             )
 
         @staticmethod
-        def get_builtin_variables():
-            return [Compiler.Variable(**variable_args) for variable_args in BUILTIN_VARIABLES]
+        def get_builtin_variables(context):
+            return [Compiler.Variable(**variable_args) for variable_args in BUILTIN_VARIABLES if
+                    variable_args['context'] == context]
 
     class Equation:
         def __init__(self, variable, expression, equation_type, context, symtables):

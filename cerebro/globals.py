@@ -26,7 +26,13 @@ from .enums import VariableContext
 
 FORBIDDEN_VARIABLE_NAMES = {
     VariableContext.NEURON: {'t', 'dt', 'size', 'last_spike', 'spiked', 'r', 'g_exc'},
-    VariableContext.SYNAPSE: {'t', 'dt', 'size', 'post_rank', 'pre_rank', 'w', 'inv_pre_rank', 'inv_post_rank'},
+    VariableContext.SYNAPSE: {'t', 'dt', 'size', 'post_rank', 'pre_rank', 'inv_pre_rank', 'inv_post_rank'},
+    VariableContext.NETWORK: set()
+}
+
+ADJECTIVE_VARIABLE_NAMES = {
+    VariableContext.NEURON: set(),
+    VariableContext.SYNAPSE: {'w', },
     VariableContext.NETWORK: set()
 }
 
@@ -68,5 +74,5 @@ BUILTIN_VARIABLES = [
         'variability': 'variable',
         'scope': 'local',
         'context': VariableContext.NEURON
-    }
+    },
 ]

@@ -63,12 +63,7 @@ cdef extern from "core.h":
 
         void inverse_connectivity_matrix()
 
-        vector[vector[double]] get_w()
-        vector[double] get_dendrite_w(int)
-        double get_synapse_w(int, int)
-        void set_w(vector[vector[double]])
-        void set_dendrite_w(int, vector[double])
-        void set_synapse_w(int, int, double)
+
 
         {% for var in connection_variable_specs[connection] %}
         {% if var.name != 'w' %}
@@ -140,23 +135,7 @@ cdef class Connection{{ connection.id }}Wrapper:
     def nb_synapses(self, rank):
         return connection{{ connection.id }}.nb_synapses(rank)
 
-    def get_w(self):
-        return connection{{ connection.id }}.get_w()
 
-    def set_w(self, value):
-        connection{{ connection.id }}.set_w(value)
-
-    def get_dendrite_w(self, int rank):
-        return connection{{ connection.id }}.get_dendrite_w(rank)
-
-    def set_dendrite_w(self, int rank, vector[double] value):
-        connection{{ connection.id }}.set_dendrite_w(rank, value)
-
-    def get_synapse_w(self, int rank_post, int rank_pre):
-        return connection{{ connection.id }}.get_synapse_w(rank_post, rank_pre)
-
-    def set_synapse_w(self, int rank_post, int rank_pre, double value):
-        connection{{ connection.id }}.set_synapse_w(rank_post, rank_pre, value)
 
     {% for var in connection_variable_specs[connection] %}
     {% if var.name != 'w' %}
