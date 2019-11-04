@@ -40,7 +40,8 @@ class Connection:
             Post-synaptic population of neurons.
         synapse : cerebro.models.synapse.Synapse
             A synapse object that constructs the connection.
-        # TODO
+        connection_type : cerebro.models.ConnectionType.ConnectionType
+            Represents type of connection. Use an object of a subclass of ConnectionType.
         Raises
         ------
         IllegalArgumentException : If arguments are not of appropriate type.
