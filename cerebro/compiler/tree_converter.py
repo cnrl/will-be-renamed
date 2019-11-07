@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import re
 import sympy
 
-from cerebro.globals import VARIABLE_NAME_PATTERN
+from cerebro.globals import VARIABLE_NAME_PATTERN, FUNCTION_PATTERN
 from cerebro.enums import VariableScope, VariableContext
 
 
@@ -43,8 +43,10 @@ class Node(ABC):
         if isinstance(sympy_object, sympy.Number):
             return Numeral.extract(sympy_object, symtables)
 
+        if Function.match(sympy_object):
+            return Function.extract(sympy_object)
+
         if not sympy_object.is_symbol:
-            print(sympy_object, type(sympy_object))
             raise Exception('Internal Error: Unknown node type')
 
         if Proprietorship.match(sympy_object):
@@ -59,7 +61,8 @@ class Node(ABC):
         raise Exception('Internal Error: Unknown node type')
 
     def traverse(self, func, parent=None, **func_kwargs):
-        ret = [child.traverse(func, self, **func_kwargs) for child in self.children] if hasattr(self, 'children') else []
+        ret = [child.traverse(func, self, **func_kwargs) for child in self.children] if hasattr(self,
+                                                                                                'children') else []
         return func(self, parent, ret, **func_kwargs)
 
 
@@ -247,3 +250,27 @@ class Variable(Symbol):
             return super_repr + '[i]'
         else:
             return super_repr + '[i][j]'
+
+
+class Function(Node):
+    PATTERN = re.compile(FUNCTION_PATTERN)
+
+    def __init__(self, function_name, param_1, param_2):
+        self.function_name = function_name
+        self.param_1 = param_1
+        self.param_2 = param_2
+
+    @staticmethod
+    def match(sympy_symbol):
+        return Function.PATTERN.match(str(sympy_symbol))
+
+    @staticmethod
+    def extract(sympy_object):
+        matched = Function.match(sympy_object)
+        if matched is None:
+            raise BaseException()
+
+        return Function(**matched.groupdict())
+
+    def __repr__(self):
+        return f"random_{self.function_name}({self.param_1}, {self.param_2})".lower()

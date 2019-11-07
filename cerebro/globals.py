@@ -36,11 +36,12 @@ ADJECTIVE_VARIABLE_NAMES = {
     VariableContext.NETWORK: set()
 }
 
+ACCEPTABLE_FUNCTION_NAMES = {'Normal', 'Uniform'}
+
 INTERNAL_VARIABLES = {'t', 'g_exc'}
 
 # TODO: complete list below
 RESERVED_WORDS = {'population', 'connection', 'neuron', 'synapse', 'spike', 'reset', 'const', 'int', 'double', 'float'}
-
 
 PACKAGE_NAME = 'Cerebro'
 
@@ -48,6 +49,11 @@ VARIABLE_NAME_PATTERN = "[A-Za-z][A-Za-z0-9_]*"
 NUMERAL_PATTERN = "[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?"
 WORD_PATTERN = "\w+"
 
+FUNCTION_PATTERN = \
+    "^(?P<function_name>{valid_functions})\((?P<param_1>{numeral_pattern}),\s* (?P<param_2>{numeral_pattern})\)$".format(
+        valid_functions='|'.join(ACCEPTABLE_FUNCTION_NAMES),
+        numeral_pattern=NUMERAL_PATTERN
+    )
 
 ACCEPTABLE_CONSTRAINTS = {
     'type': {

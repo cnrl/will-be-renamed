@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core.h"
+#include "random_functions.h"
 
 extern std::default_random_engine random_generator;
 

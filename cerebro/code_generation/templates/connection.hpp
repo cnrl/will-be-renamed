@@ -3,6 +3,7 @@
 #include "population{{ connection.pre.id }}.hpp"
 #include "population{{ connection.post.id }}.hpp"
 #include "connectivity.h"
+#include "random_functions.h"
 
 extern std::default_random_engine random_generator;
 

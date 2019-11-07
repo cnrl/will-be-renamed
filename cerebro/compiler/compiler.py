@@ -171,7 +171,11 @@ class Compiler:
         if context == EquationContext.SYNAPSE:
             for proprietor in ACCEPTABLE_PROPRIETOR:
                 expression = expression.replace('{}.'.format(proprietor), '_{}_'.format(proprietor))
-        expression = sympy.sympify(expression, evaluate=False)
+        try:
+            expression = sympy.sympify(expression, evaluate=True)
+        except:
+            print(expression)
+            raise
         tree = Node.extract(
             expression,
             symtables
