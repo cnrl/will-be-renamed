@@ -1,5 +1,6 @@
 from cerebro.models import Neuron, Synapse, Network, Population, Connection, ConnectionType
 import os
+
 os.system("rm -rf build/")
 
 neuron = Neuron(
@@ -12,7 +13,7 @@ neuron = Neuron(
     spike="(v > 5)",
     reset="""
         v = 3
-        v = 10
+        v = Uniform(1.0, 7.0)
     """
 )
 
@@ -20,10 +21,11 @@ synapse = Synapse(
     variables="""
         p = 0 : shared
         tau = 12 : constant
+        w = 2
         x = 3
     """,
     equations="""
-        x = p + tau - _pre_v + _post_v - n
+        x = p + tau - _pre_v + _post_v - n + Uniform(2, 3)
     """
 )
 
@@ -37,4 +39,3 @@ net = Network(populations=[pop, pop2], connections=[conn], variables="n = 2")
 net.compile()
 
 net.simulate(8000, 1)
-

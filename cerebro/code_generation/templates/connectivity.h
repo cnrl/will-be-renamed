@@ -1,6 +1,3 @@
-#include <vector>
-#include <random>
-#include <math.h>
 #include "core.h"
 
 extern std::default_random_engine random_generator;

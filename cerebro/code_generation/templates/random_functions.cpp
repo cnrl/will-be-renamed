@@ -1,8 +1,12 @@
 #include "random_functions.h"
 
 double random_uniform(double a, double b) {
-    return 0.6;
+    std::uniform_real_distribution<> dis(a, b);
+
+    return dis(random_generator);
 }
 double random_normal(double m, double s) {
-    return 0.7;
+    std::normal_distribution<> dis{m, s};
+
+    return dis(random_generator);
 }
