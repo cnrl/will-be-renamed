@@ -60,7 +60,7 @@ class AllToAllConnection(ConnectionType):
         ------
         NotImplementedError : If the function of abstract class is called directly.
         """
-        return f"connect_all_to_all(population{ connection.pre.id }.size, population{ connection.post.id }.size, 0.0)"
+        return f"connect_all_to_all(population{ connection.pre.id }.size, population{ connection.post.id }.size)"
 
 
 class ProbabilityConnection(ConnectionType):
@@ -96,7 +96,8 @@ class GaussianConnection(ConnectionType):
         self.sigma = sigma
 
     def get_c_definition(self, connection):
-        return f""
+        return f"connect_gaussian(" \
+               f"population{ connection.pre.id }.size, population{ connection.post.id }.size, { self.sigma })"
 
 
 class DoGConnection(ConnectionType):
@@ -105,8 +106,9 @@ class DoGConnection(ConnectionType):
         self.sigma1 = sigma1
         self.sigma2 = sigma2
 
-    def get_c_definition(self):
-        return f""
+    def get_c_definition(self, connection):
+        return f"connect_dog(" \
+               f"population{ connection.pre.id }.size, population{ connection.post.id }.size, { self.sigma1 }, { self.sigma2 })"
 
 
 class FixedPreNumberConnection(ConnectionType):
