@@ -45,6 +45,10 @@ void initialize(double _dt) {
 void single_step()
 {
     {% for connection in connections %}
+    connection{{ connection.id }}.generate_delayed_potentiations();
+    {% endfor %}
+
+    {% for connection in connections %}
     connection{{ connection.id }}.compute_psp();
     {% endfor %}
 

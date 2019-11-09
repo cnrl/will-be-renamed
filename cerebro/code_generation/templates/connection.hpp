@@ -9,16 +9,41 @@ extern std::default_random_engine random_generator;
 
 extern Population{{ connection.pre.id }} population{{ connection.pre.id }} ;
 extern Population{{ connection.post.id }} population{{ connection.post.id }} ;
+extern long int t;
 
 {% for var in network_variables %}
 extern {{ var.c_type }} {{ var.name }};
 {% endfor %}
+
+class DelayedPotentiation {
+    private:
+    int post_rank;
+    float potentiation;
+
+    public:
+    float time_to_apply;
+
+    DelayedPotentiation(int post_rank, float time_to_apply, float potentiation) {
+        this->post_rank = post_rank;
+        this->time_to_apply = time_to_apply;
+        this->potentiation = potentiation;
+    }
+    bool operator< (const DelayedPotentiation& dp) const {
+		return (this->time_to_apply < dp.time_to_apply);
+	}
+
+
+	void apply(std::vector<float>& g_exc) const {
+	    g_exc[post_rank] += potentiation;
+	}
+};
 
 struct Connection{{ connection.id }} {
     std::vector<int> post_rank;
     std::vector< std::vector< int > > pre_rank;
     std::map< int, std::vector< std::pair<int, int> > > inv_pre_rank ;
     std::vector< int > inv_post_rank ;
+    std::set<DelayedPotentiation> delayed_potentiations;
 
     {% for var in variables %}
     {% if var.scope == 'local' %}
@@ -67,9 +92,8 @@ struct Connection{{ connection.id }} {
         }
     }
 
-    void compute_psp() {
+    void generate_delayed_potentiations(){
         for(int pre_idx = 0; pre_idx < population{{ connection.pre.id }}.spiked.size(); pre_idx++) {
-
             int spiked_idx = population{{ connection.pre.id }}.spiked[pre_idx];
             auto inv_post_ptr = inv_pre_rank.find(spiked_idx);
             if (inv_post_ptr == inv_pre_rank.end())
@@ -81,7 +105,22 @@ struct Connection{{ connection.id }} {
                 int i = inv_post[post_idx].first;
                 int j = inv_post[post_idx].second;
                 population{{ connection.post.id }}.g_exc[post_rank[i]] += w[i][j];
+                delayed_potentiations.insert(
+                    DelayedPotentiation(
+                        post_rank[i],
+                        t + delay[i][j],
+                        w[i][j]
+                    )
+                );
+
             }
+        }
+    }
+
+    void compute_psp() {
+        while(!delayed_potentiations.empty() && delayed_potentiations.begin() -> time_to_apply <= t){
+            delayed_potentiations.begin()->apply(population{{ connection.post.id }}.g_exc);
+            delayed_potentiations.erase(delayed_potentiations.begin());
         }
     }
 
