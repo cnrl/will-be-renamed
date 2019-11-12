@@ -3,6 +3,7 @@
 #include "population{{ connection.pre.id }}.hpp"
 #include "population{{ connection.post.id }}.hpp"
 #include "connectivity.h"
+#include "delayed_potential.h"
 #include "random_functions.h"
 
 extern std::default_random_engine random_generator;
@@ -14,29 +15,6 @@ extern long int t;
 {% for var in network_variables %}
 extern {{ var.c_type }} {{ var.name }};
 {% endfor %}
-
-class DelayedPotentiation {
-    private:
-    int post_rank;
-    float potentiation;
-
-    public:
-    float time_to_apply;
-
-    DelayedPotentiation(int post_rank, float time_to_apply, float potentiation) {
-        this->post_rank = post_rank;
-        this->time_to_apply = time_to_apply;
-        this->potentiation = potentiation;
-    }
-    bool operator< (const DelayedPotentiation& dp) const {
-		return (this->time_to_apply < dp.time_to_apply);
-	}
-
-
-	void apply(std::vector<float>& g_exc) const {
-	    g_exc[post_rank] += potentiation;
-	}
-};
 
 struct Connection{{ connection.id }} {
     std::vector<int> post_rank;

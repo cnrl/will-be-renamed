@@ -46,6 +46,7 @@ class CodeGeneration:
         self.generate_core()
         self.generate_connectivity()
         self.generate_random_functions()
+        self.generate_delayed_potential()
         self.generate_populations()
         self.generate_connections()
         self.generate_wrapper()
@@ -65,6 +66,16 @@ class CodeGeneration:
 
     def generate_connectivity(self):
         for template_name in ['connectivity.cpp', 'connectivity.h']:
+            template = self.template_env.get_template(template_name)
+            rendered = template.render({})
+
+            full_path = os.path.join(self.base_path, template_name)
+            file = open(full_path, "w+")
+            file.write(rendered)
+            file.close()
+
+    def generate_delayed_potential(self):
+        for template_name in ['delayed_potential.cpp', 'delayed_potential.h']:
             template = self.template_env.get_template(template_name)
             rendered = template.render({})
 
