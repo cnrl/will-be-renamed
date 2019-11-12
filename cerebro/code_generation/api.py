@@ -2,7 +2,6 @@ import os
 import importlib
 
 from jinja2 import FileSystemLoader, Environment
-from sympy import Symbol
 
 from cerebro.exceptions import IllegalStateException
 
@@ -64,8 +63,8 @@ class CodeGeneration:
 
             file.close()
 
-    def generate_connectivity(self):
-        for template_name in ['connectivity.cpp', 'connectivity.h']:
+    def generate_bare_files(self, file_names):
+        for template_name in file_names:
             template = self.template_env.get_template(template_name)
             rendered = template.render({})
 
@@ -73,26 +72,15 @@ class CodeGeneration:
             file = open(full_path, "w+")
             file.write(rendered)
             file.close()
+
+    def generate_connectivity(self):
+        self.generate_bare_files(['connectivity.cpp', 'connectivity.h'])
 
     def generate_delayed_potential(self):
-        for template_name in ['delayed_potential.cpp', 'delayed_potential.h']:
-            template = self.template_env.get_template(template_name)
-            rendered = template.render({})
-
-            full_path = os.path.join(self.base_path, template_name)
-            file = open(full_path, "w+")
-            file.write(rendered)
-            file.close()
+        self.generate_bare_files(['delayed_potential.cpp', 'delayed_potential.h'])
 
     def generate_random_functions(self):
-        for template_name in ['random_functions.cpp', 'random_functions.h']:
-            template = self.template_env.get_template(template_name)
-            rendered = template.render({})
-
-            full_path = os.path.join(self.base_path, template_name)
-            file = open(full_path, "w+")
-            file.write(rendered)
-            file.close()
+        self.generate_bare_files(['random_functions.cpp', 'random_functions.h'])
 
     def generate_populations(self):
         template = self.template_env.get_template('population.hpp')
@@ -186,111 +174,3 @@ class CodeGeneration:
             raise IllegalStateException("directory {} already exists".format(base_path))
         os.mkdir(base_path)
         return base_path
-
-
-def _is_variable_population_dependent(variable):
-    return str(variable).startswith('_')
-
-
-def _generate_population_dependent_variable_codes(connection, variable):
-    var_access_code = None
-
-    for population_indicator in ['pre', 'post']:
-        split_factor = '_{}_'.format(population_indicator)
-        if split_factor in variable:
-            population_dependent_variable = variable.split(split_factor)[-1]
-            target_population = getattr(connection, population_indicator)
-
-            var_access_code = 'population{}.{}'.format(target_population.id, population_dependent_variable)
-            if target_population.neuron.variables.vars[population_dependent_variable]['scope'] == 'self':
-                var_access_code += '[rank_{}]'.format(population_indicator)
-
-    return var_access_code
-
-
-def _generate_population_update_equations(population):
-    equations = population.neuron.equations.equations_list
-    variables = population.neuron.variables.vars
-
-    update_equations = []
-
-    for equation in equations:
-        lhs = equation['lhs_parsed']
-        rhs = equation['rhs_parsed']
-        for rhs_var in rhs.atoms():
-            if isinstance(rhs_var, Symbol) and variables[str(rhs_var)]['scope'] == 'self':
-                symbol = Symbol(str(rhs_var) + '[i]')
-                rhs = rhs.subs(rhs_var, symbol)
-
-        update_equations.append((str(lhs), rhs))
-
-    return update_equations
-
-
-def _generate_spike_conditions(population):
-    condition = population.neuron.spike.equations_list[0]
-    variables = population.neuron.variables.vars
-
-    equation = condition["equation"]
-    for var in equation.atoms():
-        if isinstance(var, Symbol) and variables[str(var)]['scope'] == 'self':
-            symbol = Symbol(str(var) + '[i]')
-            equation = equation.subs(var, symbol)
-
-    return str(equation)
-
-
-def _generate_reset_equations(population):
-    equations = population.neuron.reset.equations_list
-    variables = population.neuron.variables.vars
-    reset_equations = []
-
-    for equation in equations:
-        sides = [equation['lhs_parsed'], equation['rhs_parsed']]
-        for i in range(len(sides)):
-            for var in sides[i].atoms():
-                if isinstance(var, Symbol) and variables[str(var)]['scope'] == 'self':
-                    symbol = Symbol(str(var) + '[i]')
-                    sides[i] = sides[i].subs(var, symbol)
-        reset_equations.append(str(sides[0]) + ' = ' + str(sides[1]))
-
-    return reset_equations
-
-
-def _generate_connection_update_equations(connection):
-    equations = connection.synapse.equations.equations_list
-    variables = connection.synapse.variables.vars
-
-    update_equations = []
-
-    for equation in equations:
-        lhs = equation['lhs_parsed']
-        rhs = equation['rhs_parsed']
-        for rhs_var in rhs.atoms():
-            symbol = None
-            if _is_variable_population_dependent(rhs_var):
-                symbol = _generate_population_dependent_variable_codes(connection, str(rhs_var))
-            elif isinstance(rhs_var, Symbol) and variables[str(rhs_var)]['scope'] == 'self':
-                symbol = Symbol(str(rhs_var) + '[i][j]')
-            rhs = rhs.subs(rhs_var, symbol)
-
-        update_equations.append((str(lhs), rhs))
-
-    return update_equations
-
-
-def _generate_make_file(base_path, template_env):
-    import numpy
-
-    template = template_env.get_template('Makefile')
-
-    numpy_includes = "-I" + numpy.get_include()
-
-    rendered = template.render(numpy_includes=numpy_includes)
-
-    full_path = os.path.join(base_path, 'Makefile')
-    file = open(full_path, "w+")
-
-    file.write(rendered)
-
-    file.close()
