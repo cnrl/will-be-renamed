@@ -27,6 +27,7 @@ synapse = Synapse(
     """,
     equations="""
         x = p + tau - _pre_v + _post_v - n + Uniform(2, 3)
+        dw/dt = w + 1
     """
 )
 

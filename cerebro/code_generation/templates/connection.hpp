@@ -114,7 +114,11 @@ struct Connection{{ connection.id }} {
                 {% endfor %}
 
                 {% for equation in update_equations %}
+                    {% if equation.equation_type == "ode" %}
+                {{ equation.variable.name }}[i][j] += _{{ equation.variable.name }} * dt;
+                    {% else %}
                 {{ equation.variable.name }}[i][j] += _{{ equation.variable.name }};
+                    {% endif %}
                 {% endfor %}
             }
         }
