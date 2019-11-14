@@ -42,3 +42,7 @@ extern Connection{{ connection.id }} connection{{ connection.id }};
 void initialize(double _dt) ;
 
 void run(int steps);
+
+{% for var in network_variables %}
+{{ var.c_type }} get_global_{{ var.name }}();
+{% endfor %}

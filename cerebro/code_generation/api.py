@@ -1,5 +1,6 @@
 import os
 import importlib
+import shutil
 
 from jinja2 import FileSystemLoader, Environment
 
@@ -23,7 +24,9 @@ class CodeGeneration:
         self.base_path = self.create_dirs()
 
         current_dir_path = os.path.dirname(os.path.abspath(__file__))
-        file_loader = FileSystemLoader(os.path.join(current_dir_path, 'templates'))
+        self.base_templates_path = os.path.join(current_dir_path, 'templates')
+
+        file_loader = FileSystemLoader(self.base_templates_path)
         self.template_env = Environment(loader=file_loader, lstrip_blocks=True, trim_blocks=True)
 
     def generate(self):
@@ -39,6 +42,7 @@ class CodeGeneration:
 
     def generate_files(self):
         self.generate_cpp_codes()
+        self.copy_python_modules()
         self.generate_make_file()
 
     def generate_cpp_codes(self):
@@ -49,6 +53,15 @@ class CodeGeneration:
         self.generate_populations()
         self.generate_connections()
         self.generate_wrapper()
+
+    def copy_python_modules(self):
+        self.copy_monitoring_modules()
+
+    def copy_monitoring_modules(self):
+        module_to_copy_path = os.path.join(self.base_templates_path, 'monitoring.py')
+        destination_path = os.path.join(self.base_path, 'monitoring.py')
+
+        shutil.copyfile(module_to_copy_path, destination_path)
 
     def generate_core(self):
         for template_name in ['core.h', 'core.cpp']:
@@ -133,7 +146,8 @@ class CodeGeneration:
         rendered = template.render(populations=self.populations,
                                    population_variable_specs=self.population_variable_specs,
                                    connections=self.connections,
-                                   connection_variable_specs=self.connection_variable_specs)
+                                   connection_variable_specs=self.connection_variable_specs,
+                                   network_variable_specs=self.network_variable_specs)
 
         full_path = os.path.join(self.base_path, 'wrapper.pyx')
         file = open(full_path, "w+")

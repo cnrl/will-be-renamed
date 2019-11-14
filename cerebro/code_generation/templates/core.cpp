@@ -69,6 +69,11 @@ double get_dt() { return dt; }
 void set_dt(double _dt) { dt = _dt; }
 
 {% for var in network_variables %}
-{{ var.c_type }} get_{{ var.name }}() { return {{ var.init }}; }
-void set_{{ var.name }}({{ var.c_type }} _{{ var.name }}) { {{ var.name }} = _{{ var.name }}; }
+{{ var.c_type }} get_global_{{ var.name }}() {
+    return {{ var.name }};
+}
+
+void set_global_{{ var.name }}({{ var.c_type }} value) {
+    {{ var.name }} = value;
+}
 {% endfor %}

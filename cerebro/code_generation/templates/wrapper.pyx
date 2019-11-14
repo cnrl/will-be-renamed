@@ -3,7 +3,13 @@ from libcpp.vector cimport vector
 import numpy as np
 cimport numpy as np
 
+from . import monitoring
+
 cdef extern from "core.h":
+
+    {% for network_variable_spec in network_variable_specs %}
+    cdef {{ network_variable_spec.c_type }} get_global_{{ network_variable_spec.name }}();
+    {% endfor %}
 
     cpdef long int get_time() ;
     cpdef void set_time(long int) ;
@@ -163,3 +169,36 @@ cdef class Connection{{ connection.id }}Wrapper:
     {% endfor %}
 
 {% endfor %}
+
+
+cpdef get_current_state(): # TODO
+    state = {}
+
+    network_state = {}
+    {% for network_variable_spec in network_variable_specs %}
+    network_state['{{ network_variable_spec.name }}'] = get_global_{{ network_variable_spec.name }}()
+    {% endfor %}
+    state["Network"] = network_state
+
+    {% for population in populations %}
+    population{{ population.id }}_state = {}
+
+    {% for var in population_variable_specs[population] %}
+    population{{ population.id }}_state['{{ var.name }}'] = population{{ population.id }}.get_{{ var.name }}()
+    {% endfor %}
+
+    state['Population{{ population.id }}'] = population{{ population.id }}_state
+    {% endfor %}
+
+    {% for connection in connections %}
+    connection{{ connection.id }}_state = {}
+
+    state['Connection{{ connection.id }}'] = connection{{ connection.id }}_state
+    {% endfor %}
+
+    return state
+
+cpdef run_wrapper(int steps):
+    for i in range(steps):
+        run(1)
+        monitoring.get_state_callback(get_current_state())
