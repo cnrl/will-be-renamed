@@ -171,7 +171,7 @@ cdef class Connection{{ connection.id }}Wrapper:
 {% endfor %}
 
 
-cpdef get_current_state(): # TODO
+cpdef get_current_state(): # TODO to be re-checked
     state = {}
 
     network_state = {}
@@ -192,6 +192,10 @@ cpdef get_current_state(): # TODO
 
     {% for connection in connections %}
     connection{{ connection.id }}_state = {}
+
+    {% for var in connection_variable_specs[connection] %}
+    connection{{ connection.id }}_state['{{ var.name }}'] = connection{{ connection.id }}.get_{{ var.name }}()
+    {% endfor %}
 
     state['Connection{{ connection.id }}'] = connection{{ connection.id }}_state
     {% endfor %}

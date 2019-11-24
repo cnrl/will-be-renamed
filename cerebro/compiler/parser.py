@@ -1,3 +1,15 @@
+"""A module for parsing variables and equations, written in a neuron or synapse definition.
+TODO complete doc and check doc syntax when online
+
+Classes
+-------
+VariableParser
+    Base class to parse variables.
+EquationParser
+    Base class to parse equations.
+"""
+
+
 import re
 
 from cerebro.globals import VARIABLE_NAME_PATTERN, NUMERAL_PATTERN, WORD_PATTERN
@@ -5,6 +17,20 @@ from cerebro.exceptions import ParseException
 
 
 class VariableParser:
+    """Base class to parse variables.
+
+    Attributes
+    ----------
+    VARIABLE_DEFINITION_PATTERN : (static)
+        Holds pattern object for compiled regular expression pattern of variable definition.
+
+    Static Methods
+    --------------
+    parse(definition)
+        Returns the parsed variable after matching definition with VARIABLE_DEFINITION_PATTERN.
+    from_lines(definitions)
+        Returns the list of line-by-line-parsed variables.
+    """
     class ParsedVariable:
         def __init__(self, name, init, constraints):
             self.name = name
@@ -39,6 +65,22 @@ class VariableParser:
 
 
 class EquationParser:
+    """Base class to parse variables.
+
+    Attributes
+    ----------
+    ODE_PATTERN : (static)
+        Holds pattern object for compiled regular expression pattern of an ODE definition.
+    SIMPLE_PATTERN : (static)
+        Holds pattern object for compiled regular expression pattern of a simple equation definition.
+
+    Static Methods
+    --------------
+    parse(definition)
+        Returns the parsed equation after matching definition with ODE_PATTERN and SIMPLE_PATTERN.
+    from_lines(definitions)
+        Returns the list of line-by-line-parsed equations.
+    """
     class ParsedEquation:
         def __init__(self, variable, expression, equation_type):
             self.variable = variable

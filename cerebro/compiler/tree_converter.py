@@ -199,7 +199,7 @@ class Proprietorship(Operator):
             raise Exception('Internal Error: sympy_object is not a proprietorship')
 
         groups = matched.groupdict()
-        owner = groups.get('OWNER')  # TODO: owner should be changed with pre and post population id
+        owner = groups.get('OWNER')
         name = sympy.Symbol(groups.get('NAME'))
         spec = symtables[owner].get(str(name))
         return cls(owner, [Variable(name, spec)])
@@ -265,7 +265,7 @@ class Function(Node):
         return Function.PATTERN.match(str(sympy_symbol))
 
     @staticmethod
-    def extract(sympy_object):
+    def extract(sympy_object):  # TODO to be considered
         matched = Function.match(sympy_object)
         if matched is None:
             raise BaseException()
