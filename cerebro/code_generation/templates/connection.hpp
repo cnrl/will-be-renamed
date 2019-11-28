@@ -103,11 +103,43 @@ struct Connection{{ connection.id }} {
     }
 
     void update_synapse() {
+        std::unordered_set<int> pre_spiked_set;
+        for (const int &spiked_idx: population{{ connection.pre.id }}.spiked) {
+            pre_spiked_set.insert(spiked_idx);
+        }
+
+        std::unordered_set<int> post_spiked_set;
+        for (const int &spiked_idx: population{{ connection.post.id }}.spiked) {
+            post_spiked_set.insert(spiked_idx);
+        }
+
         for(int i = 0; i < post_rank.size(); i++) {
             int rank_post = post_rank[i];
 
             for(int j = 0; j < pre_rank[i].size(); j++) {
                 int rank_pre = pre_rank[i][j];
+
+                if(pre_spiked_set.find(i) != pre_spiked_set.end()) {
+                    {% for equation in update_pre_spike_equations %}
+                    double __{{ equation.variable.name }} = {{ equation.expression }};
+                    {% if equation.equation_type == "ode" %}
+                    {{ equation.variable.name }}[i][j] += __{{ equation.variable.name }} * dt;
+                    {% else %}
+                    {{ equation.variable.name }}[i][j] += __{{ equation.variable.name }};
+                    {% endif %}
+                    {% endfor %}
+                }
+
+                if(post_spiked_set.find(j) != post_spiked_set.end()) {
+                    {% for equation in update_post_spike_equations %}
+                    double __{{ equation.variable.name }} = {{ equation.expression }};
+                    {% if equation.equation_type == "ode" %}
+                    {{ equation.variable.name }}[i][j] += __{{ equation.variable.name }} * dt;
+                    {% else %}
+                    {{ equation.variable.name }}[i][j] += __{{ equation.variable.name }};
+                    {% endif %}
+                    {% endfor %}
+                }
 
                 {% for equation in update_equations %}
                 double _{{ equation.variable.name }} = {{ equation.expression }};

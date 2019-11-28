@@ -10,7 +10,7 @@ from cerebro.exceptions import IllegalStateException
 class CodeGeneration:
     def __init__(self, network, populations, connections, network_variable_specs, population_variable_specs,
                  connection_variable_specs, population_equations, population_reset_equations,
-                 population_spike_condition, connection_equations):
+                 population_spike_condition, connection_equations, connection_pre_spike, connection_post_spike):
         self.network = network
         self.populations = populations
         self.connections = connections
@@ -21,6 +21,8 @@ class CodeGeneration:
         self.population_reset_equations = population_reset_equations
         self.population_spike_condition = population_spike_condition
         self.connection_equations = connection_equations
+        self.connection_pre_spike = connection_pre_spike
+        self.connection_post_spike = connection_post_spike
         self.base_path = self.create_dirs()
 
         current_dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -124,12 +126,16 @@ class CodeGeneration:
 
         for connection in self.connections:
             update_equations = self.connection_equations[connection]
+            update_pre_spike_equations = self.connection_pre_spike[connection]
+            update_post_spike_equations = self.connection_post_spike[connection]
             variables = self.connection_variable_specs[connection]
             rendered = template.render(
                 connection=connection,
                 network_variables=self.network_variable_specs,
                 variables=variables,
                 update_equations=update_equations,
+                update_pre_spike_equations=update_pre_spike_equations,
+                update_post_spike_equations=update_post_spike_equations,
                 connect_function=connection.connection_type.get_c_definition(connection)
             )
             full_path = os.path.join(self.base_path, 'connection{}.hpp'.format(connection.id))

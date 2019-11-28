@@ -228,7 +228,8 @@ class Compiler:
                               self.network_variable_specs,
                               self.population_variable_specs, self.connection_variable_specs,
                               self.population_equations, self.population_reset_equations,
-                              self.population_spike_condition, self.connection_equations).generate()
+                              self.population_spike_condition, self.connection_equations,
+                              self.connection_pre_spike, self.connection_post_spike).generate()
 
     def parse_expression(self, expression, context, symtables):
         if context == EquationContext.SYNAPSE:
