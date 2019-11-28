@@ -23,6 +23,8 @@ class Compiler:
         self.population_spike_condition = {}
 
         self.connection_equations = defaultdict(list)
+        self.connection_pre_spike = defaultdict(list)
+        self.connection_post_spike = defaultdict(list)
 
         self.population_symbol_tables = {}
 
@@ -149,6 +151,67 @@ class Compiler:
             )
             self.connection_equations[connection].append(equation)
 
+        for parsed_equation in connection.synapse.pre_spike:
+            self.parse_expression(
+                parsed_equation.expression,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            # FIXME: check if only related variables are affected
+            equation = Compiler.Equation.from_parsed(
+                parsed_equation,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            equation.semantic_analyzer(
+                self.symtable,
+                EquationContext.SYNAPSE,
+                proprietor_symtables={
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                },
+                connection=connection
+            )
+            self.connection_pre_spike[connection].append(equation)
+
+        for parsed_equation in connection.synapse.post_spike:
+            self.parse_expression(
+                parsed_equation.expression,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            # FIXME: check if only related variables are affected
+            equation = Compiler.Equation.from_parsed(
+                parsed_equation,
+                EquationContext.SYNAPSE,
+                {
+                    'self': self.symtable,
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                }
+            )
+            equation.semantic_analyzer(
+                self.symtable,
+                EquationContext.SYNAPSE,
+                proprietor_symtables={
+                    'pre': self.population_symbol_tables[connection.pre],
+                    'post': self.population_symbol_tables[connection.post]
+                },
+                connection=connection
+            )
+            self.connection_post_spike[connection].append(equation)
         self.symtable.exit_scope()
 
     def semantic_analyzer(self):

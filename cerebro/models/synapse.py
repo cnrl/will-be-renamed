@@ -22,7 +22,7 @@ class Synapse:
         A multi-line string, each line of which defines an equation.
     """
 
-    def __init__(self, variables='', equations=''):
+    def __init__(self, variables='', equations='', pre_spike='', post_spike=''):
         """
         Parameters
         ----------
@@ -55,13 +55,23 @@ class Synapse:
             raise IllegalArgumentException(self.__class__.__name__ + ".variables must be an string")
         if not InstanceGuard(str).is_valid(equations):
             raise IllegalArgumentException(self.__class__.__name__ + ".equations must be an string")
+        if not InstanceGuard(str).is_valid(pre_spike):
+            raise IllegalArgumentException(self.__class__.__name__ + ".pre_spike must be an string")
+        if not InstanceGuard(str).is_valid(post_spike):
+            raise IllegalArgumentException(self.__class__.__name__ + ".post_spike must be an string")
 
         self.variables = VariableParser.from_lines(variables)
         self.equations = EquationParser.from_lines(equations)
+        self.pre_spike = EquationParser.from_lines(pre_spike)
+        self.post_spike = EquationParser.from_lines(post_spike)
 
     def __repr__(self):
         return self.__class__.__name__ + """(
             Variables:
             """ + str(self.variables) + """
             Equations of the variables:
-            """ + str(self.equations) + ")"
+            """ + str(self.equations) + """
+            PreSpike equations:
+            """ + str(self.pre_spike) + """
+            PostSpike equations:
+            """ + str(self.post_spike) + ")"

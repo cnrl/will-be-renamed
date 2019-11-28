@@ -20,14 +20,19 @@ neuron = Neuron(
 synapse = Synapse(
     variables="""
         p = 0 : shared
-        tau = 12 : constant
-        w = 2
+        tau = 12 : constant     
         delay = 0
         x = 3
     """,
     equations="""
         x = p + tau - _pre_v + _post_v - n + Uniform(2, 3)
         dw/dt = w + 1
+    """,
+    pre_spike="""
+    x = x + w
+    """,
+    post_spike="""
+    x = x - w
     """
 )
 

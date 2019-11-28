@@ -72,7 +72,6 @@ cdef extern from "core.h":
 
 
         {% for var in connection_variable_specs[connection] %}
-        {% if var.name != 'w' %}
         {% if var.scope == 'local' %}
         vector[vector[{{ var.c_type }}]] get_{{ var.name }}()
         vector[{{ var.c_type }}] get_dendrite_{{ var.name }}(int)
@@ -83,7 +82,6 @@ cdef extern from "core.h":
         {% else %}
         {{ var.c_type }} get_{{ var.name }}()
         void set_{{ var.name }}({{ var.c_type }})
-        {% endif %}
         {% endif %}
         {% endfor %}
     {% endfor %}
