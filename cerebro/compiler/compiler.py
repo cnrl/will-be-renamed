@@ -51,12 +51,16 @@ class Compiler:
 
         for variable_spec in population_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
-            self.population_variable_specs[population].append(variable_spec)
+            existed = next((item for item in self.population_variable_specs[population] if item.name == variable_spec.name), None)
+            if not existed:
+                self.population_variable_specs[population].append(variable_spec)
+            else:
+                raise ValueError(f"Variable {variable_spec.name} redefined.")
 
         not_defined_adjectives = ADJECTIVE_VARIABLE_NAMES[VariableContext.NEURON] \
                                  - {variable_spec.name for variable_spec in population_variable_specs}
         if not_defined_adjectives:
-            raise SemanticException(f"You should define all adjective variables: !!!!!{not_defined_adjectives}")
+            raise SemanticException(f"You should define all compulsory variables: {not_defined_adjectives}")
 
         for parsed_equation in population.neuron.equations:
             self.parse_expression(
@@ -113,7 +117,11 @@ class Compiler:
 
         for variable_spec in connection_variable_specs:
             self.symtable.define(variable_spec.name, variable_spec)
-            self.connection_variable_specs[connection].append(variable_spec)
+            existed = next((item for item in self.connection_variable_specs[connection] if item.name == variable_spec.name), None)
+            if not existed:
+                self.connection_variable_specs[connection].append(variable_spec)
+            else:
+                raise ValueError(f"Variable {variable_spec.name} redefined.")
 
         not_defined_adjectives = ADJECTIVE_VARIABLE_NAMES[VariableContext.SYNAPSE] \
                                  - {variable_spec.name for variable_spec in connection_variable_specs}
