@@ -80,13 +80,5 @@ BUILTIN_VARIABLES = [
         'variability': 'variable',
         'scope': 'local',
         'context': VariableContext.NEURON
-    },
-    {
-        'name': 'w',
-        'init': '0',
-        'c_type': 'float',
-        'variability': 'variable',
-        'scope': 'local',
-        'context': VariableContext.SYNAPSE
     }
 ]

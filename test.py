@@ -22,6 +22,7 @@ synapse = Synapse(
         p = 0 : shared
         tau = 12 : constant     
         delay = 0
+        w = 1
         x = 3
     """,
     equations="""
