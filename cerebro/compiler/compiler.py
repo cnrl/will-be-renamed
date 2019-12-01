@@ -43,7 +43,9 @@ class Compiler:
 
     def _population_semantic_analyzer(self, population):
         population_variable_specs = [
-            Compiler.Variable.from_parsed(variable, VariableContext.NEURON) for variable in population.neuron.variables
+            variable if isinstance(variable, Compiler.Variable) else
+            Compiler.Variable.from_parsed(variable, VariableContext.NEURON) for variable in
+            population.neuron.variables
         ]
         population_variable_specs.extend(Compiler.Variable.get_builtin_variables(VariableContext.NEURON))
 
@@ -108,6 +110,7 @@ class Compiler:
 
     def _connection_semantic_analyzer(self, connection):
         connection_variable_specs = [
+            variable if isinstance(variable, Compiler.Variable) else
             Compiler.Variable.from_parsed(variable, VariableContext.SYNAPSE) for variable in
             connection.synapse.variables
         ]

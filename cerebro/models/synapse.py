@@ -51,16 +51,19 @@ class Synapse:
         """
 
         # parameter validation
-        if not InstanceGuard(str).is_valid(variables):
-            raise IllegalArgumentException(self.__class__.__name__ + ".variables must be an string")
+        if not (InstanceGuard(str).is_valid(variables) or InstanceGuard(list).is_valid(variables)):
+            raise IllegalArgumentException(self.__class__.__name__ + ".variables must be a string or list")
         if not InstanceGuard(str).is_valid(equations):
-            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
         if not InstanceGuard(str).is_valid(pre_spike):
-            raise IllegalArgumentException(self.__class__.__name__ + ".pre_spike must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".pre_spike must be a string")
         if not InstanceGuard(str).is_valid(post_spike):
-            raise IllegalArgumentException(self.__class__.__name__ + ".post_spike must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".post_spike must be a string")
 
-        self.variables = VariableParser.from_lines(variables)
+        if isinstance(variables, str):
+            self.variables = VariableParser.from_lines(variables)
+        else:
+            self.variables = variables
         self.equations = EquationParser.from_lines(equations)
         self.pre_spike = EquationParser.from_lines(pre_spike)
         self.post_spike = EquationParser.from_lines(post_spike)

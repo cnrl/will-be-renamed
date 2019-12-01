@@ -6,6 +6,8 @@ Neuron
     Base class to define a neuron.
 """
 
+
+from cerebro.compiler.compiler import Compiler
 from cerebro.compiler.parser import VariableParser, EquationParser
 from cerebro.models.parameter_guards import InstanceGuard
 from cerebro.exceptions import IllegalArgumentException
@@ -16,7 +18,7 @@ class Neuron:
 
     Attributes
     ----------
-    variables : str
+    variables : str or list
         A multi-line string, each line of which defines a variable.
     equations : str
         A multi-line string, each line of which defines an equation for normal functionality of the neuron.
@@ -59,16 +61,19 @@ class Neuron:
         """
 
         # parameter validation
-        if not InstanceGuard(str).is_valid(variables):
-            raise IllegalArgumentException(self.__class__.__name__ + ".variables must be an string")
+        if not (InstanceGuard(str).is_valid(variables) or InstanceGuard(list).is_valid(variables)):
+            raise IllegalArgumentException(self.__class__.__name__ + ".variables must be a string or list")
         if not InstanceGuard(str).is_valid(equations):
-            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".equations must be a string")
         if not InstanceGuard(str).is_valid(spike):
-            raise IllegalArgumentException(self.__class__.__name__ + ".spike must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".spike must be a string")
         if not InstanceGuard(str).is_valid(reset):
-            raise IllegalArgumentException(self.__class__.__name__ + ".reset must be an string")
+            raise IllegalArgumentException(self.__class__.__name__ + ".reset must be a string")
 
-        self.variables = VariableParser.from_lines(variables)
+        if isinstance(variables, str):
+            self.variables = VariableParser.from_lines(variables)
+        else:
+            self.variables = variables
         self.equations = EquationParser.from_lines(equations)
         self.spike = spike
         self.reset = EquationParser.from_lines(reset)
