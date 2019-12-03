@@ -1,17 +1,29 @@
 import cv2
 import glob
+from ctypes import CDLL
 
 from cerebro.models import Neuron
 from cerebro.models import Population
 
 
 class ImagePopulation(Population):
+
     image_type = ["jpg", "png"]
     image_list = []
 
-    def __init__(self, size):
-        self.neuron = Neuron(variables="r = 0.0")
+    def __init__(self, size, path, filter_type, coding_scheme="intensity_to_latency", **filter_params):
+        self.neuron = Neuron(
+            variables="""
+                tts = 0 : local
+                base_time = 0 : shared
+            """,
+            spike="((base_time + tts) >= 0) & ((base_time + tts) >= 0)",
+        )
         super().__init__(size, self.neuron)
+        self.set_image(path)
+        self.filtered_image_list = self.apply_filter(filter_type, **filter_params)
+        if coding_scheme == "intesity_to_latency":
+            self.intensity_to_latency()
 
     def load_image(self, name):
         try:
@@ -34,9 +46,9 @@ class ImagePopulation(Population):
 
     def apply_filter(self, filter_type, **params):
         if filter_type == "Gabor":
-            filtered_image = self.Gabor_filter(params)
+            filtered_image = self.gabor_filter(**params)
         elif filter_type == "DoG":
-            filtered_image = self.DoG_filter(params)
+            filtered_image = self.dog_filter(**params)
         else:
             raise Exception("wrong filter")
 
@@ -61,5 +73,5 @@ class ImagePopulation(Population):
                 image_with_gabor_list.append(cv2.filter2D(i, cv2.CV_8UC3, g_kernel))
         return image_with_gabor_list
 
-    def intensity_to_latency(self, image):
-        pass
+    def intensity_to_latency(self):
+        self.neuron.spike = "(base_time + tts) == t"

@@ -68,7 +68,7 @@ class Image_population():
             raise Exception("wrong filter")
 
 
-    def DoG_filter(self,size_of_Gaussian_1 ,size_of_Gaussian_2):
+    def DoG_filter(self, size_of_Gaussian_1, size_of_Gaussian_2):
         image_with_DoG_list = []
         for i in self.image_list:
             DoG_img_1 = cv2.GaussianBlur(i, (size_of_Gaussian_1, size_of_Gaussian_1), 0)

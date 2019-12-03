@@ -37,7 +37,7 @@ class Node(ABC):
 
         if isinstance(sympy_object, (sympy.GreaterThan, sympy.StrictGreaterThan,
                                      sympy.LessThan, sympy.StrictLessThan,
-                                     sympy.And, sympy.Or)):
+                                     sympy.And, sympy.Or, sympy.Equality)):
             return BinaryOperator.extract(sympy_object, symtables)
 
         if isinstance(sympy_object, sympy.Number):
@@ -89,6 +89,7 @@ class BinaryOperator(Operator):
         sympy.And: '&',
         sympy.Or: '|',
         sympy.Xor: '^',
+        sympy.Equality: '==',
     }
 
     def __init__(self, children, op):
@@ -154,7 +155,7 @@ class Derivative(Operator):
     def match(sympy_symbol, symtable):
         matched = Derivative.PATTERN.match(str(sympy_symbol))
         return matched if matched is not None \
-                          and symtable['self'].is_defined(matched.groupdict().get('NAME')) else None
+                          and symtable['self'].get(matched.groupdict().get('NAME')) else None
 
     @classmethod
     def extract(cls, sympy_object, symtable):
@@ -250,7 +251,6 @@ class Variable(Symbol):
             return super_repr + '[i]'
         else:
             return super_repr + '[i][j]'
-
 
 class Function(Node):
     PATTERN = re.compile(FUNCTION_PATTERN)
