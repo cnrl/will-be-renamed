@@ -38,7 +38,7 @@ synapse = Synapse(
     """
 )
 
-image_pop = ImagePopulation(400, '/home/atenagm/cnrl/code/cerebro/akse.jpg', "DoG", size_of_gaussian_1=0.2, size_of_gaussian_2=0.1)
+image_pop = ImagePopulation(400, '/home/atenagm/cnrl/code/cerebro/aks.jpg', "DoG", size_of_gaussian_1=1, size_of_gaussian_2=1)
 # image_pop.set_image('/home/atenagm/cnrl/code/cerebro/akse.jpg')
 
 pop = Population(neuron=neuron, size=10)

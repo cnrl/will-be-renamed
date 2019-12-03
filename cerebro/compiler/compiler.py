@@ -32,6 +32,7 @@ class Compiler:
         network_variable_specs = [
             Compiler.Variable.from_parsed(variable, VariableContext.NETWORK) for variable in self.network.variables
         ]
+        network_variable_specs.extend(Compiler.Variable.get_builtin_variables(VariableContext.NETWORK))
 
         self.symtable.enter_scope()
         for variable_spec in network_variable_specs:

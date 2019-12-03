@@ -2,6 +2,8 @@ import cv2
 import glob
 from ctypes import CDLL
 
+import numpy
+
 from cerebro.models import Neuron
 from cerebro.models import Population
 
@@ -17,13 +19,12 @@ class ImagePopulation(Population):
                 tts = 0 : local
                 base_time = 0 : shared
             """,
-            spike="((base_time + tts) >= 0) & ((base_time + tts) >= 0)",
+            spike="((base_time + tts) >= 0) & ((base_time + tts) <= 0)",
         )
         super().__init__(size, self.neuron)
         self.set_image(path)
         self.filtered_image_list = self.apply_filter(filter_type, **filter_params)
-        if coding_scheme == "intesity_to_latency":
-            self.intensity_to_latency()
+        self.coding_scheme = coding_scheme
 
     def load_image(self, name):
         try:
@@ -31,13 +32,13 @@ class ImagePopulation(Population):
         except Exception:
             raise Exception("there is no image")
 
-        img = cv2.resize(img, self.size)
+        img = cv2.resize(img, (self.size // 2, self.size // 2))
 
         return img
 
     def set_image(self, path):
         name = path.split('/')[-1]
-        if '.'.join(self.image_type) in name:
+        if '.' in name:
             self.image_list.append(self.load_image(name))
         else:
             for j in self.image_type:
@@ -74,4 +75,21 @@ class ImagePopulation(Population):
         return image_with_gabor_list
 
     def intensity_to_latency(self):
-        self.neuron.spike = "(base_time + tts) == t"
+        if self.filtered_image_list is None:
+            raise Exception('no image list exist !')
+        tmp = []
+        for k in range(len(self.filtered_image_list)):
+            for i in range(len(self.filtered_image_list[k])):
+                for j in range(len(self.filtered_image_list[k][i])):
+                    # tmp.append((k, i, j, self.filtered_image_list[k][i][j]))
+                    tmp.append(self.filtered_image_list[k][i][j])
+                    # k is index of pictures
+                    # (i,j) shows location of each point in kth photo
+                    # img_list[k][i][j] shows spike
+
+        # tmp.sort(key=lambda tup: tup[3], reverse=True)
+        # # print(tmp[0][3])
+        # for i in range(len(tmp)):
+        #     tmp[i] = (tmp[i][0], tmp[i][1], tmp[i][2], abs(tmp[i][3] - 255))
+
+        return tmp
