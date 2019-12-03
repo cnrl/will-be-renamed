@@ -5,7 +5,9 @@ Classes
 Network
     Base class to build a network.
 """
+from ctypes import CDLL
 
+from cerebro.preprocessors import ImagePopulation
 from cerebro.exceptions import IllegalArgumentException
 from cerebro.models.population import Population
 from cerebro.models.connection import Connection
@@ -95,6 +97,9 @@ class Network:
         self.compiler.semantic_analyzer()
         self.c_module = self.compiler.code_gen()
         self._bind_c_instances()
+        for pop in self.populations:
+            if isinstance(pop, ImagePopulation.ImagePopulation):
+                pop.wrapper.set_tts(pop.intensity_to_latency())
 
     def simulate(self, duration, dt):
         """Simulates the network for `duration` time with `dt` step size."""

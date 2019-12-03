@@ -81,12 +81,12 @@ BUILTIN_VARIABLES = [
         'scope': 'local',
         'context': VariableContext.NEURON
     },
-    # {
-    #     'name': 't',
-    #     'init': '0',
-    #     'c_type': 'int',
-    #     'variability': 'variable',
-    #     'scope': 'local',
-    #     'context': VariableContext.NETWORK
-    # }
+    {
+        'name': 't',
+        'init': '0',
+        'c_type': 'long int',
+        'variability': 'variable',
+        'scope': 'local',
+        'context': VariableContext.NETWORK
+    }
 ]

@@ -40,7 +40,8 @@ class Compiler:
                 raise ParseException('Network variables cannot have {} scope'.format(VariableScope.SHARED))
 
             self.symtable.define(variable_spec.name, variable_spec)
-            self.network_variable_specs.append(variable_spec)
+            if variable_spec.name != 't':
+                self.network_variable_specs.append(variable_spec)
 
     def _population_semantic_analyzer(self, population):
         population_variable_specs = [

@@ -19,7 +19,7 @@ class ImagePopulation(Population):
                 tts = 0 : local
                 base_time = 0 : shared
             """,
-            spike="((base_time + tts) >= 0) & ((base_time + tts) <= 0)",
+            spike="((base_time + tts) >= t) & ((base_time + tts) <= t)",
         )
         super().__init__(size, self.neuron)
         self.set_image(path)
@@ -92,4 +92,4 @@ class ImagePopulation(Population):
         # for i in range(len(tmp)):
         #     tmp[i] = (tmp[i][0], tmp[i][1], tmp[i][2], abs(tmp[i][3] - 255))
 
-        return tmp
+        return numpy.asarray(tmp)
