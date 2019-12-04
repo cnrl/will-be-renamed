@@ -1,3 +1,4 @@
+from cerebro.code_generation.templates.monitoring import plot
 from cerebro.models import Neuron, Synapse, Network, Population, Connection, ConnectionType
 from cerebro.preprocessors.ImagePopulation import ImagePopulation
 import os
@@ -39,6 +40,7 @@ synapse = Synapse(
 )
 
 image_pop = ImagePopulation(400, '/home/atenagm/cnrl/code/cerebro/aks.jpg', "DoG", size_of_gaussian_1=1, size_of_gaussian_2=1)
+# Image_pop = Population(neuron=neuron, size=10)
 # image_pop.set_image('/home/atenagm/cnrl/code/cerebro/akse.jpg')
 
 pop = Population(neuron=neuron, size=10)
@@ -49,4 +51,5 @@ net = Network(populations=[pop, image_pop], connections=[conn], variables="n = 2
 
 net.compile()
 
-net.simulate(8000, 1)
+plot("Population1", 'v')
+net.simulate(10, 0.1)

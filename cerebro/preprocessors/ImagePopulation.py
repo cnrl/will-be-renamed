@@ -1,6 +1,5 @@
 import cv2
 import glob
-from ctypes import CDLL
 
 import numpy
 
