@@ -1,8 +1,8 @@
 """Module for keeping variable specs.
 
-Classes
--------
-SymbolTable
+*Classes*:
+
+* **SymbolTable**:
     Class to keep variable specs in a symbol table.
 """
 
@@ -11,23 +11,8 @@ from cerebro.exceptions import InternalException
 
 
 class SymbolTable:
-    """Class to keep variable specs in a symbol table.
-
-    Attributes
-    ----------
-    scopes : list of dict of str: cerebro.Compiler.Variable
-        Stores variables' specs
-
-    Methods
-    -------
-    enter_scope()
-        Create new scope.
-    define(name, spec)
-        Set variable's spec.
-    exit_scope()
-        Exits a scope.
-    get(name)
-        Returns a variable's spec.
+    """
+    Class to keep variable specs in a symbol table.
     """
     def __init__(self):
         self.scopes = []
@@ -39,16 +24,13 @@ class SymbolTable:
     def define(self, name, spec):
         """Set variable's spec.
 
-        Parameters
-        ----------
-        name : str
-            Shows variable's name.
-        spec : cerebro.Compiler.Variable
-            Indicates properties of a variable.
+        :param name: Shows variable's name.
+        :param spec: Indicates properties of a variable.
 
-        Raises
-        ------
-        InternalException : If the variable has not been defined in the scope.
+        :type name: str
+        :type spec: cerebro.Compiler.Variable
+
+        :raises InternalException: If the variable has not been defined in the scope.
         """
         try:
             self.scopes[-1][name] = spec
@@ -58,9 +40,7 @@ class SymbolTable:
     def exit_scope(self):
         """Exits a scope.
 
-        Raises
-        ------
-        InternalException : If scope list is empty.
+        :raises InternalException: If scope list is empty.
         """
         try:
             self.scopes.pop()
@@ -70,10 +50,13 @@ class SymbolTable:
     def get(self, name):
         """Returns a variable's spec and None if the variable does not exist.
 
-        Parameters
-        ----------
-        name : str
-            Shows a variable's name
+        :param name: Shows a variable's name
+
+        :type name: str
+
+        :returns: variable's spec if variable exists
+
+        :rtype: cerebro.compiler.compiler.Compiler.Variable or None
         """
         for scope in reversed(self.scopes):
             if name in scope:

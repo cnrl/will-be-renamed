@@ -18,14 +18,20 @@ class Node(ABC):
 
     @classmethod
     def extract(cls, sympy_object, symtables):
-        """
-        Extract type of AST node.
-        :param cls:
-        :param sympy_object:
-        :param symtable:
-        :return:
-        """
+        """Extract type of AST node.
 
+        :param cls: Defines the node class
+        :param sympy_object: An object of Sympy
+        :param symtables: Symbol tables containers
+        
+        :type cls: abc.ABCMeta
+        :type sympy_object: sympy.core.assumptions.ManagedProperties
+        :type symtables: dict
+
+        :returns: Type of AST node
+
+        :rtype: cls
+        """
         if isinstance(sympy_object, sympy.Mul):
             return Mul.extract(sympy_object, symtables)
 
@@ -72,6 +78,11 @@ class Operator(Node, ABC):
     """
 
     def __init__(self, children):
+        """
+        :param children: Child nodes of the Operator nodes, i.e. the operands
+
+        :type children: list
+        """
         super().__init__()
         self.children = children
 
@@ -93,6 +104,13 @@ class BinaryOperator(Operator):
     }
 
     def __init__(self, children, op):
+        """
+        :param children: Child nodes of the BinaryOperator nodes, i.e. the operands
+        :param op: The operator
+
+        :type children: list
+        :type op: str
+        """
         super().__init__(children)
         self.op = op
 
@@ -210,7 +228,15 @@ class Proprietorship(Operator):
 
 
 class Symbol(Node, ABC):
+    """
+    Class to take care of symbols.
+    """
     def __init__(self, symbol):
+        """
+        :param symbol: The symbol
+
+        :type symbol: sympy.core.symbol.Symbol or sympy.core.numbers.*
+        """
         super().__init__()
         self.symbol = symbol
 
@@ -223,14 +249,27 @@ class Symbol(Node, ABC):
 
 
 class Numeral(Symbol):
+    """
+    Class to handle numeral symbols
+    """
     def __init__(self, symbol):
         super().__init__(symbol)
 
 
 class Variable(Symbol):
+    """
+    Class to handle alphanumeric symbols, interpreted as variables.
+    """
     PATTERN = re.compile(VARIABLE_NAME_PATTERN)
 
     def __init__(self, symbol, spec):
+        """
+        :param symbol: The variable symbol
+        :param spec: Variable's specifications
+
+        :type symbol: sympy.core.symbol.Symbol
+        :type spec: cerebro.compiler.compiler.Compiler.Variable
+        """
         super().__init__(symbol)
         self.spec = spec
 
@@ -252,13 +291,24 @@ class Variable(Symbol):
         else:
             return super_repr + '[i][j]'
 
-class Function(Node):
+
+class Function(Node):  # TODO generalize it for other mathematical functions
+    """
+    Class to handle functions used in equations.
+    """
     PATTERN = re.compile(FUNCTION_PATTERN)
 
-    def __init__(self, function_name, param_1, param_2):
+    def __init__(self, function_name, **kwargs):
+        """
+        :param function_name: Name of the function
+        :param \**kwargs: arguments of the function
+
+        :type function_name: str
+        """
+        super().__init__()
         self.function_name = function_name
-        self.param_1 = param_1
-        self.param_2 = param_2
+        self.param_1 = kwargs['param_1']
+        self.param_2 = kwargs['param_2']
 
     @staticmethod
     def match(sympy_symbol):

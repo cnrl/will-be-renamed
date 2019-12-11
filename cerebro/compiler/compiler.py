@@ -1,3 +1,23 @@
+"""This module contains a single class, responsible for compilation process.
+
+*Classes*:
+
+* **Compiler**:
+    Base class to compile a network.
+
+    - **Variable**:
+        Base class for more low-level operations on variables.
+    - **Equation**:
+        Base class for more low-level operations on equations.
+    - **Expression**:
+        Base class for all right-hand-side expressions.
+    - **NeuronExpression**:
+        Base class for neuron expression.
+    - **SynapseExpression**:
+        Base class for synapse expression.
+"""
+
+
 from collections import defaultdict
 from copy import deepcopy
 import sympy
@@ -12,7 +32,15 @@ from .tree_converter import Node, Variable, Derivative, Proprietorship
 
 
 class Compiler:
+    """
+    Base class to compile a network.
+    """
     def __init__(self, network):
+        """
+        :param network: The network object to be compiled
+
+        :type network: cerebro.models.network.Network
+        """
         self.network = network
         self.symtable = SymbolTable()
         self.network_variable_specs = []
@@ -29,6 +57,10 @@ class Compiler:
         self.population_symbol_tables = {}
 
     def _network_variables_semantic_analyzer(self):
+        """Analyses the network variables semantically and adds the them to the symbol table.
+
+        :raises: ParseException: If network variable is defined to have `shared` scope.
+        """
         network_variable_specs = [
             Compiler.Variable.from_parsed(variable, VariableContext.NETWORK) for variable in self.network.variables
         ]
@@ -44,6 +76,15 @@ class Compiler:
                 self.network_variable_specs.append(variable_spec)
 
     def _population_semantic_analyzer(self, population):
+        """Analyses a population variables and equations semantically and adds the variables to the symbol table.
+
+        :param population: The population to be analysed.
+
+        :type population: cerebro.models.population.Population
+
+        :raises: ValueError: If the variables used in the equations are not defined.
+        :raises: SemanticException: If not all compulsory variables are defined or `reset` expression contains an ODE.
+        """
         population_variable_specs = [
             variable if isinstance(variable, Compiler.Variable) else
             Compiler.Variable.from_parsed(variable, VariableContext.NEURON) for variable in
@@ -111,6 +152,15 @@ class Compiler:
         self.symtable.exit_scope()
 
     def _connection_semantic_analyzer(self, connection):
+        """Analyses a connection variables and equations semantically and adds the variables to the symbol table.
+
+        :param connection: The connection to be analysed.
+
+        :type connection: cerebro.models.connection.Connection
+
+        :raises: ValueError: If the variables used in the equations are not defined.
+        :raises: SemanticException: If not all compulsory variables are defined.
+        """
         connection_variable_specs = [
             variable if isinstance(variable, Compiler.Variable) else
             Compiler.Variable.from_parsed(variable, VariableContext.SYNAPSE) for variable in
@@ -132,7 +182,7 @@ class Compiler:
                                  - {variable_spec.name for variable_spec in connection_variable_specs}
 
         if not_defined_adjectives:
-            raise SemanticException(f"You should define all adjective variables: !!!!!{not_defined_adjectives}")
+            raise SemanticException(f"You should define all compulsory variables: {not_defined_adjectives}")
 
         for parsed_equation in connection.synapse.equations:
             self.parse_expression(
@@ -228,6 +278,7 @@ class Compiler:
         self.symtable.exit_scope()
 
     def semantic_analyzer(self):
+        """Analyse the whole network construction semantically."""
         self._network_variables_semantic_analyzer()
 
         for population in self.network.populations:
@@ -237,6 +288,12 @@ class Compiler:
             self._connection_semantic_analyzer(connection)
 
     def code_gen(self):
+        """Generates the wrapper class for the network.
+
+        :returns: A wrapper module
+
+        :rtype: module
+        """
         return CodeGeneration(self.network, self.network.populations, self.network.connections,
                               self.network_variable_specs,
                               self.population_variable_specs, self.connection_variable_specs,
@@ -245,6 +302,18 @@ class Compiler:
                               self.connection_pre_spike, self.connection_post_spike).generate()
 
     def parse_expression(self, expression, context, symtables):
+        """Parses the right-hand-side expression of an equation by traversing the parse tree.
+
+        :param expression: The right-hand-side expression of an equation
+        :param context: The context of the equation, i.e. Neuron or Synapse
+        :param symtables: Symbol tables container for further parse tree traversal
+
+        :type expression: str
+        :type context: enum EquationContext
+        :type symtables: dict
+
+        :raises: SympifyError: If sympy fails to parse the given expression
+        """
         if context == EquationContext.SYNAPSE:
             for proprietor in ACCEPTABLE_PROPRIETOR:
                 expression = expression.replace('{}.'.format(proprietor), '_{}_'.format(proprietor))
@@ -259,6 +328,22 @@ class Compiler:
         )
 
         def semantic_tree(node, parent, children, **func_kwargs):
+            """Checks the parse tree for semantic errors.
+
+            :param node: the node to analyse
+            :param parent: parent of the node to be analysed
+            :param children: child nodes of the `node` object
+            :param \**func_kwargs: See below
+            :Keyword Arguments:
+                * *symtable* (``dict``) --
+                  Symbol Table object
+                  
+            :type node: cerebro.compiler.tree_converter.Node
+            :type parent: cerebro.compiler.tree_converter.Node
+            :type children: cerebro.compiler.tree_converter.Node
+
+            :raises: SemanticException: If a constant variable is used as ODE variable.
+            """
             sym_table = func_kwargs.get('symtable')
             # if isinstance(node, Variable):
             #     if not sym_table.is_defined(node.symbol):
@@ -272,7 +357,25 @@ class Compiler:
         tree.traverse(semantic_tree)
 
     class Variable:
+        """
+        Base class for more low-level operations and detailed information on variables.
+        """
         def __init__(self, name, init, c_type, variability, scope, context):
+            """
+            :param name: Name of the variable
+            :param init: Initial value of the variable
+            :param c_type: C type of the variable
+            :param variability: Whether the parameter is constant or variable
+            :param scope: Scope of the variable, i.e. shared or local
+            :param context: Context of the variable, i.e. Neuron or Synapse
+
+            :type name: str
+            :type init: str
+            :type c_type: str
+            :type variability: str
+            :type scope: str
+            :type context: enum VariableContext
+            """
             self.name = name
             self.init = init
             self.c_type = c_type
@@ -282,6 +385,18 @@ class Compiler:
 
         @staticmethod
         def _extract_constraints(constraints):
+            """Extract the constraints defined for a variable.
+
+            :param constraints: Constraints defined for a variable.
+
+            :type constraints: str
+
+            :returns: A dictionary of constraints
+
+            :rtype: dict
+
+            :raises: SemanticException: If there are invalid or confusing constraints.
+            """
             spec = {}
             constraints_set = set(constraints)
 
@@ -304,6 +419,20 @@ class Compiler:
 
         @staticmethod
         def from_parsed(variable, context):
+            """Generates a Variable object from the parsed variable.
+
+            :param variable: The parsed variable object
+            :param context: Context of the variable
+
+            :type variable: cerebro.compiler.parser.VariableParser.ParsedVariable
+            :type context: enum VariableContext
+
+            :returns: The Variable object
+
+            :rtype: cerebro.compiler.compiler.Compiler.Variable
+
+            :raises: SemanticException: If the variable name is forbidden.
+            """
             if variable.name in FORBIDDEN_VARIABLE_NAMES[context].union(RESERVED_WORDS):
                 raise SemanticException('Forbidden name for variable: {}'.format(variable.name))
 
@@ -320,11 +449,37 @@ class Compiler:
 
         @staticmethod
         def get_builtin_variables(context):
+            """Returns the builtin variables in the context.
+
+            :param context: The context of the desired builtin variables
+
+            :type context: enum VariableContext
+
+            :returns: The builtin variables
+
+            :rtype: list
+            """
             return [Compiler.Variable(**variable_args) for variable_args in BUILTIN_VARIABLES if
                     variable_args['context'] == context]
 
     class Equation:
+        """
+        Base class for more low-level operations and detailed information on equations.
+        """
         def __init__(self, variable, expression, equation_type, context, symtables):
+            """
+            :param variable: Variable that changes by the equation
+            :param expression: right-hand-side expression of an equation
+            :param equation_type: Type of the equation, i.e. simple or ODE
+            :param context: Context in which the equation is defined
+            :param symtables: Symbol tables container
+
+            :type variable: str
+            :type expression: str
+            :type equation_type: str
+            :type context: enum EquationContext
+            :type symtables: dict
+            """
             self.variable = variable
             expression_cls = Compiler.NeuronExpression \
                 if context == EquationContext.NEURON else Compiler.SynapseExpression
@@ -332,6 +487,16 @@ class Compiler:
             self.equation_type = equation_type
 
         def semantic_analyzer(self, symbol_table, context, **kwargs):
+            """Semantic analysis of the equation.
+
+            :param symbol_table: The symbol table object
+            :param context: Context in which the equation is defined
+
+            :type symbol_table: cerebro.compiler.symbol_table.SymbolTable
+            :type context: enum EquationContext
+
+            :raises: SemanticException: If variable is not defined in the scope or equation variable is constant.
+            """
             var_spec = symbol_table.get(self.variable)
             if var_spec is None:
                 raise SemanticException('Variable {} is not defined in this scope.'.format(self.variable))
@@ -345,6 +510,20 @@ class Compiler:
 
         @staticmethod
         def from_parsed(parsed_equation, context, symtables):
+            """Generate an Equation object from parsed equation.
+
+            :param parsed_equation: Parsed equation object
+            :param context: Context of the equation
+            :param symtables: Symbol tables container
+
+            :type parsed_equation: cerebro.compiler.parser.EquationParser.ParsedEquation
+            :type context: enum EquationContext
+            :type symtables: dict
+
+            :returns: The Equation object
+
+            :rtype: cerebro.compiler.compiler.Compiler.Equation
+            """
             return Compiler.Equation(
                 parsed_equation.variable,
                 parsed_equation.expression,
@@ -354,7 +533,13 @@ class Compiler:
             )
 
     class Expression:
+        """Base class for right-hand-side expression parse tree."""
         def __init__(self, tree):
+            """
+            :param tree: The parse tree root
+
+            :type tree: cerebro.compiler.tree_converter.Node
+            """
             self.tree = tree
 
         @classmethod
@@ -368,7 +553,18 @@ class Compiler:
             return repr(self.tree)
 
     class NeuronExpression(Expression):
+        """
+        Base class for right-hand side expression of a neuron.
+        """
         def semantic_analyzer(self, symbol_table):
+            """Traverses the parse tree and analyzes nodes semantically.
+
+            :param symbol_table: symbol table object
+
+            :type symbol_table: cerebro.compiler.symbol_table.SymbolTable
+
+            :raises: SemanticException: If variables in the equation are not defined in the scope.
+            """
             def is_defined(node, parent, children, **kwargs):
                 sym_table = kwargs.get('symbol_table')
                 if isinstance(node, Variable) and sym_table.get(str(node.symbol)) is None and \
@@ -378,7 +574,23 @@ class Compiler:
             self.tree.traverse(is_defined, symbol_table=symbol_table)
 
     class SynapseExpression(Expression):
+        """
+        Base class for right-hand-side expression of a synapse.
+        """
         def semantic_analyzer(self, symbol_table, **kwargs):
+            """Traverses the parse tree and analyzes nodes semantically.
+
+            :param symbol_table: Symbol table object
+            :param \**kwargs: See below
+            :Keyword Arguments:
+                * *symbol_table* (``cerebro.compiler.symbol_table.SymbolTable``) -- Symbol table object of synapse
+                * *connection* (``cerebro.models.connection.Connection``) -- Connection in which the synapse is used
+                * *proprietor_symtables* (``cerebro.compiler.symbol_table.SymbolTable``) -- Symbol table object for pre and post neurons
+
+            :type symbol_table: cerebro.compiler.symbol_table.SymbolTable
+
+            :raises: SemanticException: If variable is not defined in the corresponding scope.
+            """
             proprietor_symtables = kwargs.get('proprietor_symtables')
             connection = kwargs.get('connection')
 

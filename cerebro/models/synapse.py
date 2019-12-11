@@ -1,53 +1,46 @@
-"""Module containing a single to define a synapse.
+"""This module contains a single class to define a synapse.
 
-Classes
--------
-Synapse
+*Classes*:
+
+* **Synapse**:
     Base class to define a synapse.
 """
 
 from cerebro.exceptions import IllegalArgumentException
-from cerebro.models.parameter_guards import InstanceGuard
+from cerebro.parameter_guards import InstanceGuard
 from cerebro.compiler.parser import VariableParser, EquationParser
 
 
 class Synapse:
-    """Base class to define a synapse.
-
-    Attributes
-    ----------
-    variables : str
-        A multi-line string, each line of which defines a variable.
-    equations : str
-        A multi-line string, each line of which defines an equation.
+    """
+    Base class to define a synapse.
     """
 
     def __init__(self, variables='', equations='', pre_spike='', post_spike=''):
         """
-        Parameters
-        ----------
-        variables : str
-            A multi-line string, each line of which defines a variable.
-            Template for each variable definition is as follows:
-            name_of_variable = initial_value [: constraint_list]
-            where "constraint_list" can have at most 3 elements separated with comma.
-            Possible constraints are:
-            1) data type constraints: Any of `int`, `double` or `float` can be defined as variable type constraint.
-                Default type of variables is `float`.
-            2) variability constraints: Any of words `constant` or `variable` can be used as variability constraint.
-                All parameters are `variable` by default.
-            3) scope constraints: Any of words `local` or `shared` can be used as scope constraint. Scope of all
-                parameters is `local` by default.
-        equations : str
-            A multi-line string, each line of which defines an equation.
-            Each equation is either an ODE or a normal equation. In case of ODEs, the derivative should be placed
-            on left hand side of the equation and everything else should be placed on the right hand side. In case
-            of a normal equation, the variable value of which is meant to be changed should be placed on left hand
-            side and the rest is placed on right hand side.
+        :param variables: A multi-line string, each line of which defines a variable. Template for each variable
+            definition is as follows: name_of_variable = initial_value [: constraint_list] where "constraint_list" can
+            have at most 3 elements separated with comma. Possible constraints are:
 
-        Raises
-        ------
-        IllegalArgumentException : If arguments are not of appropriate type.
+                1. data type constraints: Any of `int`, `double` or `float` can be defined as variable type constraint.
+                Default type of variables is `float`.
+
+                2. variability constraints: Any of words `constant` or `variable`can be used as variability constraint. All
+                parameters are `variable` by default.
+
+                3. scope constraints:Any of words `local` or `shared` can be used as scope constraint. Scope of all
+                parameters is `local` by default.
+
+        :param equations: A multi-line string, each line of which defines an equation. Each equation is
+            either an ODE or a normal equation. In case of ODEs, the derivative should be placed on left hand side of
+            the equation and everything else should be placed on the right hand side. In case of a normal equation,
+            the variable value of which is meant to be changed should be placed on left hand side and the rest is
+            placed on right hand side.
+
+        :type variables: str
+        :type equations: str
+
+        :raises IllegalArgumentException: If arguments are not of appropriate type.
         """
 
         # parameter validation

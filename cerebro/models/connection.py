@@ -1,50 +1,36 @@
 """Module containing a single class to define connection between two population of neurons.
 
-Classes
--------
-Connection
+*Classes*:
+
+* **Connection**:
     Base class to define a connection between two population of neurons.
 """
 
 from cerebro.models.population import Population
 from cerebro.models.synapse import Synapse
 from cerebro.exceptions import IllegalArgumentException
-from cerebro.models.parameter_guards import InstanceGuard
+from cerebro.parameter_guards import InstanceGuard
 
 
 class Connection:
-    """Base class to define a connection between two population of neurons.
-
-    Attributes
-    ----------
-    pre : cerebro.models.population.Population
-        Pre-synaptic population of neurons.
-    post : cerebro.models.population.Population
-        Post-synaptic population of neurons.
-    synapse : cerebro.models.synapse.Synapse
-        A synapse object that constructs the connection.
-    wrapper :
-        # TODO
-    id : int
-        Identifier number of each connection.
+    """
+    Base class to define a connection between two population of neurons.
     """
     _instance_count = 0
 
     def __init__(self, pre, post, synapse, connection_type):
         """
-        Parameters
-        ----------
-        pre : cerebro.models.population.Population
-            Pre-synaptic population of neurons.
-        post : cerebro.models.population.Population
-            Post-synaptic population of neurons.
-        synapse : cerebro.models.synapse.Synapse
-            A synapse object that constructs the connection.
-        connection_type : cerebro.models.ConnectionType.ConnectionType
-            Represents type of connection. Use an object of a subclass of ConnectionType.
-        Raises
-        ------
-        IllegalArgumentException : If arguments are not of appropriate type.
+        :param pre: Pre-synaptic population of neurons.
+        :param post: Post-synaptic population of neurons.
+        :param synapse: A synapse object that constructs the connection.
+        :param connection_type: Represents type of connection. Use an object of a subclass of ConnectionType.
+
+        :type pre: cerebro.models.population.Population
+        :type post: cerebro.models.population.Population
+        :type synapse: cerebro.models.synapse.Synapse
+        :type connection_type: cerebro.models.connection_type.ConnectionType
+
+        :raises IllegalArgumentException: If arguments are not of appropriate type.
         """
 
         # parameter validation
@@ -76,9 +62,7 @@ class Connection:
 
     def __getattr__(self, item):
         """
-            Raises
-            ------
-            AttributeError : If an attribute does not exist.
+            :raises AttributeError : If an attribute does not exist.
         """
 
         if self.wrapper is None or \

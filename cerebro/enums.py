@@ -1,60 +1,5 @@
-"""Widely used enumeration objects
-
-Classes
--------
-EquationType(Enum)
-    All possible types for a context equation.
-    Members:
-        SIMPLE :
-            Indicates the equation is defined for normal functionality of the context.
-        RESET :
-            Indicates the equation is defined for reset functionality of a neuron.
-        SPIKE :
-            Indicates the equation is spike condition of a neuron.
-
-VariableContext(Enum)
-    Possible contexts for a variable.
-    Members:
-        NEURON :
-            Indicates the context of the variable is a neuron.
-        SYNAPSE :
-            Indicates the context of the variable is a synapse.
-        NETWORK:
-            Indicates the context of the variable is a network.
-
-EquationContext(Enum)
-    Possible contexts for a equation.
-    Members:
-        NEURON :
-            Indicates the context of the equation is a neuron.
-        SYNAPSE :
-            Indicates the context of the equation is a synapse.
-
-VariableType(Enum)
-    Possible data types constraints for a context variable.
-    Members:
-        DOUBLE :
-            Indicates double data type for a variable.
-        INTEGER :
-            Indicates int data type for a variable.
-        FLOAT:
-            Indicates float data type for a variable.
-
-VariableVariability(Enum)
-    Possible variability constraints for a context variable.
-    Members:
-        CONSTANT :
-            Indicates constant constraint for a context variable.
-        VARIABLE :
-            Indicates no constraint on variability of a context variable.
-
-VariableScope(Enum)
-    Possible scope constraints for a context variable.
-    Members:
-        LOCAL :
-            Indicates local constraint for a context variable.
-        SHARED :
-            Indicates that the context variable is shared in the parent context.
+"""
+Widely used enumeration objects
 """
 
 from enum import Enum, unique
@@ -62,16 +7,9 @@ from enum import Enum, unique
 
 @unique
 class EquationType(Enum):
-    """All possible types for a context equation.
-
-    Members
-    -------
-    SIMPLE :
-        Indicates the equation is defined for normal functionality of the context.
-    RESET :
-        Indicates the equation is defined for reset functionality of a neuron.
-    SPIKE :
-        Indicates the equation is spike condition of a neuron."""
+    """
+    All possible types for a context equation.
+    """
 
     SIMPLE = "simple"
     RESET = "reset"
@@ -79,16 +17,9 @@ class EquationType(Enum):
 
 
 class VariableContext(Enum):
-    """Possible contexts for a variable.
-
-    Members
-    -------
-    NEURON :
-        Indicates the context of the variable is a neuron.
-    SYNAPSE :
-        Indicates the context of the variable is a synapse.
-    NETWORK:
-        Indicates the context of the variable is a network."""
+    """
+    Possible contexts for a variable.
+    """
 
     NEURON = "neuron"
     SYNAPSE = "synapse"
@@ -96,30 +27,18 @@ class VariableContext(Enum):
 
 
 class EquationContext(Enum):
-    """Possible contexts for a equation.
-
-    Members
-    -------
-    NEURON :
-        Indicates the context of the equation is a neuron.
-    SYNAPSE :
-        Indicates the context of the equation is a synapse."""
+    """
+    Possible contexts for a equation.
+    """
 
     NEURON = "neuron"
     SYNAPSE = "synapse"
 
 
 class VariableType(Enum):
-    """Possible data types constraints for a context variable.
-
-    Members
-    -------
-    DOUBLE :
-        Indicates double data type for a variable.
-    INTEGER :
-        Indicates int data type for a variable.
-    FLOAT:
-        Indicates float data type for a variable."""
+    """
+    Possible data types constraints for a context variable.
+    """
 
     DOUBLE = 'double'
     INTEGER = 'integer'
@@ -127,28 +46,18 @@ class VariableType(Enum):
 
 
 class VariableVariability(Enum):
-    """Possible variability constraints for a context variable.
-
-    Members
-    -------
-    CONSTANT :
-        Indicates constant constraint for a context variable.
-    VARIABLE :
-        Indicates no constraint on variability of a context variable."""
+    """
+    Possible variability constraints for a context variable.
+    """
 
     CONSTANT = 'constant'
     VARIABLE = 'variable'
 
 
 class VariableScope(Enum):
-    """Possible scope constraints for a context variable.
-
-    Members
-    -------
-    LOCAL :
-        Indicates local constraint for a context variable.
-    SHARED :
-        Indicates that the context variable is shared in the parent context."""
+    """
+    Possible scope constraints for a context variable.
+    """
 
     LOCAL = 'local'
     SHARED = 'shared'

@@ -1,5 +1,5 @@
 from cerebro.code_generation.templates.monitoring import plot
-from cerebro.models import Neuron, Synapse, Network, Population, Connection, ConnectionType
+from cerebro.models import Neuron, Synapse, Network, Population, Connection, connection_type
 from cerebro.preprocessors.ImagePopulation import ImagePopulation
 import os
 
@@ -45,7 +45,7 @@ image_pop = ImagePopulation(400, '/home/atenagm/cnrl/code/cerebro/aks.jpg', "DoG
 
 pop = Population(neuron=neuron, size=10)
 
-conn = Connection(pre=image_pop, post=pop, synapse=synapse, connection_type=ConnectionType.AllToAllConnection())
+conn = Connection(pre=image_pop, post=pop, synapse=synapse, connection_type=connection_type.AllToAllConnection())
 
 net = Network(populations=[pop, image_pop], connections=[conn], variables="n = 2")
 

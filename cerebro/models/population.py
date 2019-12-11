@@ -1,44 +1,31 @@
 """Module containing a single class to build a population of neurons.
 
-Classes
--------
-Population
+*Classes*:
+
+* **Population**:
     Base class to define a population of neurons.
 """
 
 from cerebro.exceptions import IllegalArgumentException
 from cerebro.models.neuron import Neuron
-from cerebro.models.parameter_guards import InstanceGuard
+from cerebro.parameter_guards import InstanceGuard
 
 
 class Population:
-    """Base class to define a population of neurons.
-
-    Attributes
-    ----------
-    size : int
-        An integer denoting size of the population, i.e. number of neurons in the population.
-    neuron : cerebro.model.neuron.Neuron
-        A Neuron object which constructs the population.
-    wrapper :
-        # TODO
-    id : int
-        Identifier number of each population.
+    """
+    Base class to define a population of neurons.
     """
     _instance_count = 0
 
     def __init__(self, size, neuron):
         """
-        Parameters
-        ----------
-        size : int
-            An integer denoting size of the population, i.e. number of neurons in the population.
-        neuron : cerebro.models.neuron.Neuron
-            A Neuron object which constructs the population.
+        :param size: An integer denoting size of the population, i.e. number of neurons in the population.
+        :param neuron: A Neuron object which constructs the population.
 
-        Raises
-        ------
-        IllegalArgumentException : If arguments are not of appropriate type.
+        :type size: int
+        :type neuron: cerebro.models.neuron.Neuron
+
+        :raises IllegalArgumentException: If arguments are not of appropriate type.
         """
 
         # parameter validation
@@ -65,9 +52,7 @@ class Population:
 
     def __getattr__(self, item):
         """
-        Raises
-        ------
-        AttributeError : If an attribute does not exist.
+        :raises AttributeError: If an attribute does not exist.
         """
 
         if self.wrapper is None or not hasattr(self.wrapper, 'get_{}'.format(item)):
