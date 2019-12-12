@@ -92,7 +92,7 @@ class Operator(Node, ABC):
 
 
 class BinaryOperator(Operator):
-    OP_MAP = {
+    _OP_MAP = {
         sympy.GreaterThan: '>=',
         sympy.StrictGreaterThan: '>',
         sympy.LessThan: '<=',
@@ -116,7 +116,7 @@ class BinaryOperator(Operator):
 
     @classmethod
     def extract(cls, sympy_object, symtable):
-        op = BinaryOperator.OP_MAP[type(sympy_object)]
+        op = BinaryOperator._OP_MAP[type(sympy_object)]
         return cls([Node.extract(arg, symtable) for arg in sympy_object.args], op)
 
     def __repr__(self):
@@ -164,14 +164,14 @@ class Derivative(Operator):
     """
     Class to take care of derivative nodes in AST.
     """
-    PATTERN = re.compile('d(?P<NAME>{})'.format(VARIABLE_NAME_PATTERN))
+    _PATTERN = re.compile('d(?P<NAME>{})'.format(VARIABLE_NAME_PATTERN))
 
     def __init__(self, children):
         super().__init__(children)
 
     @staticmethod
     def match(sympy_symbol, symtable):
-        matched = Derivative.PATTERN.match(str(sympy_symbol))
+        matched = Derivative._PATTERN.match(str(sympy_symbol))
         return matched if matched is not None \
                           and symtable['self'].get(matched.groupdict().get('NAME')) else None
 
@@ -193,7 +193,7 @@ class Proprietorship(Operator):
     """
     Class to handle proprietorship of variables, e.g. in synapse equation(pre.r).
     """
-    PATTERN = re.compile(
+    _PATTERN = re.compile(
         "^_(?P<OWNER>{name_pattern})_(?P<NAME>{name_pattern})$".format(name_pattern=VARIABLE_NAME_PATTERN))
 
     def __init__(self, owner, children):
@@ -209,7 +209,7 @@ class Proprietorship(Operator):
 
     @staticmethod
     def match(sympy_symbol):
-        return Proprietorship.PATTERN.match(str(sympy_symbol))
+        return Proprietorship._PATTERN.match(str(sympy_symbol))
 
     @classmethod
     def extract(cls, sympy_object, symtables):
@@ -260,7 +260,7 @@ class Variable(Symbol):
     """
     Class to handle alphanumeric symbols, interpreted as variables.
     """
-    PATTERN = re.compile(VARIABLE_NAME_PATTERN)
+    _PATTERN = re.compile(VARIABLE_NAME_PATTERN)
 
     def __init__(self, symbol, spec):
         """
@@ -275,7 +275,7 @@ class Variable(Symbol):
 
     @staticmethod
     def match(sympy_symbol):
-        return Variable.PATTERN.match(str(sympy_symbol))
+        return Variable._PATTERN.match(str(sympy_symbol))
 
     @classmethod
     def extract(cls, sympy_object, symtable):
@@ -296,7 +296,7 @@ class Function(Node):  # TODO generalize it for other mathematical functions
     """
     Class to handle functions used in equations.
     """
-    PATTERN = re.compile(FUNCTION_PATTERN)
+    _PATTERN = re.compile(FUNCTION_PATTERN)
 
     def __init__(self, function_name, **kwargs):
         """
@@ -312,7 +312,7 @@ class Function(Node):  # TODO generalize it for other mathematical functions
 
     @staticmethod
     def match(sympy_symbol):
-        return Function.PATTERN.match(str(sympy_symbol))
+        return Function._PATTERN.match(str(sympy_symbol))
 
     @staticmethod
     def extract(sympy_object):  # TODO to be considered

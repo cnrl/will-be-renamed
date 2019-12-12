@@ -44,7 +44,7 @@ class VariableParser:
             self.init = init
             self.constraints = constraints
 
-    VARIABLE_DEFINITION_PATTERN = re.compile(
+    _VARIABLE_DEFINITION_PATTERN = re.compile(
         "^\s*(?P<NAME>{})\s*=\s*(?P<INIT>{})\s*(:\s*(?P<CONSTRAINTS>({}\s*)*)\s*)?$".format(
             VARIABLE_NAME_PATTERN, NUMERAL_PATTERN, WORD_PATTERN
         )
@@ -64,7 +64,7 @@ class VariableParser:
 
         :raises: ParseException: If the definition is invalid.
         """
-        matched = VariableParser.VARIABLE_DEFINITION_PATTERN.match(definition)
+        matched = VariableParser._VARIABLE_DEFINITION_PATTERN.match(definition)
 
         if matched is None:
             raise ParseException("invalid variable definition: {}".format(definition))
@@ -115,11 +115,11 @@ class EquationParser:
             self.expression = expression
             self.equation_type = equation_type
 
-    ODE_PATTERN = re.compile(
+    _ODE_PATTERN = re.compile(
         "^\s*d(?P<NAME>{})\s*\/\s*dt\s*=\s*(?P<RHS>.+)\s*$".format(VARIABLE_NAME_PATTERN)
     )
 
-    SIMPLE_PATTERN = re.compile(
+    _SIMPLE_PATTERN = re.compile(
         "^\s*(?P<NAME>{})\s*=\s*(?P<RHS>.+)\s*$".format(VARIABLE_NAME_PATTERN)
     )
 
@@ -137,10 +137,10 @@ class EquationParser:
 
         :raises: ParseException: If the definition is invalid.
         """
-        matched = EquationParser.ODE_PATTERN.match(equation)
+        matched = EquationParser._ODE_PATTERN.match(equation)
         equation_type = 'ode' if matched is not None else 'simple'
         if matched is None:
-            matched = EquationParser.SIMPLE_PATTERN.match(equation)
+            matched = EquationParser._SIMPLE_PATTERN.match(equation)
 
         if matched is None:
             raise ParseException('invalid equation')

@@ -12,18 +12,22 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
 
+from sphinx.ext.autodoc import DataDocumenter, ModuleLevelDocumenter, SUPPRESS
+from sphinx.util.inspect import object_description
+
+sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
 project = 'cerebro'
-copyright = '2019, Alireza Abolghasemi, Amirmohammad Asadi, Ashena Gorgan Mohammadi, Alireza Mahmudi, Alireza Mohammadi, Arya Sadeghi, Motahare Sadeghian, Parisa Safaryazdi'
-author = 'Alireza Abolghasemi, Amirmohammad Asadi, Ashena Gorgan Mohammadi, Alireza Mahmudi, Alireza Mohammadi, Arya Sadeghi, Motahare Sadeghian, Parisa Safaryazdi'
+copyright = '2019, Alireza Abolghasemi, Amirmohammad Asadi, Ashena Gorgan Mohammadi, Alireza Mahmudi, ' \
+            'Alireza Mohammadi, Arya Sadeghi, Motahare Sadeghian, Parisa Safaryazdi'
+author = 'Alireza Abolghasemi, Amirmohammad Asadi, Ashena Gorgan Mohammadi, Alireza Mahmudi, Alireza Mohammadi, ' \
+         'Arya Sadeghi, Motahare Sadeghian, Parisa Safaryazdi'
 
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
-
+release = '0.0.1 beta'
 
 # -- General configuration ---------------------------------------------------
 
@@ -42,7 +46,6 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -59,5 +62,30 @@ autodoc_default_options = {
     'member-order': 'bysource',
     'special-members': '__init__',
     'undoc-members': False,
+    'show-inheritance': True,
     'exclude-members': '__weakref__'
 }
+
+
+def add_directive_header(self, sig):
+    ModuleLevelDocumenter.add_directive_header(self, sig)
+    if not self.options.annotation:
+        try:
+            objrepr = object_description(self.object)
+
+            # PATCH: truncate the value if longer than 50 characters
+            if len(objrepr) > 10:
+                objrepr = objrepr[:10] + "..."
+
+        except ValueError:
+            pass
+        else:
+            self.add_line(u'   :annotation: = ' + objrepr, '<autodoc>')
+    elif self.options.annotation is SUPPRESS:
+        pass
+    else:
+        self.add_line(u'   :annotation: %s' % self.options.annotation,
+                      '<autodoc>')
+
+
+DataDocumenter.add_directive_header = add_directive_header
